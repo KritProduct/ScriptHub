@@ -9,7 +9,7 @@ function ColorPicker.Create(parent, callback, defaultColor)
     local brightness = 1
     
     local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 100)
+    container.Size = UDim2.new(1, 0, 0, 120)
     container.BackgroundTransparency = 1
     container.Parent = parent
     
@@ -44,7 +44,7 @@ function ColorPicker.Create(parent, callback, defaultColor)
     end
     
     local colorCanvas = Instance.new("Frame")
-    colorCanvas.Size = UDim2.new(1, -20, 0, 55)
+    colorCanvas.Size = UDim2.new(1, -20, 0, 70)
     colorCanvas.Position = UDim2.new(0, 0, 0, 0)
     colorCanvas.BackgroundColor3 = hslToRgb(hue, 1, 0.5)
     colorCanvas.BorderSizePixel = 0
@@ -54,29 +54,25 @@ function ColorPicker.Create(parent, callback, defaultColor)
     canvasCorner.CornerRadius = UDim.new(0, 6)
     canvasCorner.Parent = colorCanvas
     
-    local whiteGradient = Instance.new("UIGradient")
-    whiteGradient.Color = ColorSequence.new({
+    local saturationGradient = Instance.new("UIGradient")
+    saturationGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-        ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        ColorSequenceKeypoint.new(1, hslToRgb(hue, 1, 0.5))
     })
-    whiteGradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0),
-        NumberSequenceKeypoint.new(1, 1)
-    })
-    whiteGradient.Rotation = 0
-    whiteGradient.Parent = colorCanvas
+    saturationGradient.Rotation = 0
+    saturationGradient.Parent = colorCanvas
     
-    local blackGradient = Instance.new("UIGradient")
-    blackGradient.Color = ColorSequence.new({
+    local brightnessGradient = Instance.new("UIGradient")
+    brightnessGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
         ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
     })
-    blackGradient.Transparency = NumberSequence.new({
+    brightnessGradient.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 1),
         NumberSequenceKeypoint.new(1, 0)
     })
-    blackGradient.Rotation = 90
-    blackGradient.Parent = colorCanvas
+    brightnessGradient.Rotation = 90
+    brightnessGradient.Parent = colorCanvas
     
     local canvasIndicator = Instance.new("Frame")
     canvasIndicator.Size = UDim2.new(0, 10, 0, 10)
@@ -96,13 +92,13 @@ function ColorPicker.Create(parent, callback, defaultColor)
     indicatorStroke.Parent = canvasIndicator
     
     local hueSlider = Instance.new("Frame")
-    hueSlider.Size = UDim2.new(1, -20, 0, 8)
-    hueSlider.Position = UDim2.new(0, 0, 0, 62)
+    hueSlider.Size = UDim2.new(1, -20, 0, 10)
+    hueSlider.Position = UDim2.new(0, 0, 0, 80)
     hueSlider.BorderSizePixel = 0
     hueSlider.Parent = container
     
     local hueCorner = Instance.new("UICorner")
-    hueCorner.CornerRadius = UDim.new(0, 4)
+    hueCorner.CornerRadius = UDim.new(0, 5)
     hueCorner.Parent = hueSlider
     
     local hueGradient = Instance.new("UIGradient")
@@ -136,7 +132,7 @@ function ColorPicker.Create(parent, callback, defaultColor)
     
     local preview = Instance.new("Frame")
     preview.Size = UDim2.new(0, 30, 0, 20)
-    preview.Position = UDim2.new(1, -30, 0, 75)
+    preview.Position = UDim2.new(1, -30, 0, 95)
     preview.BackgroundColor3 = selectedColor
     preview.BorderSizePixel = 0
     preview.Parent = container
@@ -147,6 +143,10 @@ function ColorPicker.Create(parent, callback, defaultColor)
     
     local function updateCanvas()
         colorCanvas.BackgroundColor3 = hslToRgb(hue, 1, 0.5)
+        saturationGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(1, hslToRgb(hue, 1, 0.5))
+        })
     end
     
     local function updateIndicators()
