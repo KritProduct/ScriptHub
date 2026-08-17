@@ -84,7 +84,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     panelCorner.Parent = settingsPanel
     
     local settingsContent = Instance.new("Frame")
-    settingsContent.Size = UDim2.new(1, -20, 1, -20)
+    settingsContent.Size = UDim2.new(1, -20, 0, 0)
     settingsContent.Position = UDim2.new(0, 10, 0, 10)
     settingsContent.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsContent.BorderSizePixel = 0
@@ -110,12 +110,31 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         end
     end
     
+    local function calculateContentHeight()
+        local totalHeight = 0
+        local itemCount = 0
+        
+        for _, child in pairs(settingsContent:GetChildren()) do
+            if child ~= settingsList then
+                itemCount += 1
+                totalHeight += child.AbsoluteSize.Y
+            end
+        end
+        
+        totalHeight += (itemCount - 1) * 5
+        totalHeight += 20
+        
+        return totalHeight
+    end
+    
     local function animateOpen(targetHeight)
         animating = true
         local wrapperTween = TweenService:Create(wrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 55 + targetHeight)})
         local panelTween = TweenService:Create(settingsPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetHeight)})
+        local contentTween = TweenService:Create(settingsContent, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -20, 0, targetHeight - 20)})
         wrapperTween:Play()
         panelTween:Play()
+        contentTween:Play()
         wrapperTween.Completed:Connect(function() animating = false end)
     end
     
@@ -123,8 +142,10 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         animating = true
         local wrapperTween = TweenService:Create(wrapper, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 55)})
         local panelTween = TweenService:Create(settingsPanel, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)})
+        local contentTween = TweenService:Create(settingsContent, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(1, -20, 0, 0)})
         wrapperTween:Play()
         panelTween:Play()
+        contentTween:Play()
         wrapperTween.Completed:Connect(function()
             animating = false
             for _, child in pairs(settingsContent:GetChildren()) do
@@ -215,12 +236,9 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 end
             end
             
-            local itemCount = 0
-            for _, child in pairs(settingsContent:GetChildren()) do
-                if child ~= settingsList then itemCount += 1 end
-            end
+            task.wait(0.05)
             
-            local targetHeight = math.max(itemCount * 40 + 20, 80)
+            local targetHeight = calculateContentHeight()
             animateOpen(targetHeight)
         else
             settingsBtn.Text = "+"
