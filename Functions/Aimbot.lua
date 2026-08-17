@@ -5,11 +5,14 @@ Aimbot.Settings = {
     Speed = 10,
     WallCheck = false,
     FriendCheck = false,
+    DrawFOV = false,
+    FOVColor = Color3.fromRGB(255, 255, 255),
     Keybind = nil
 }
 
 Aimbot.Enabled = false
 Aimbot.Connection = nil
+Aimbot.FOVCircle = nil
 
 function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
@@ -35,10 +38,49 @@ end
 
 function Aimbot.IsFriend(player, target)
     if not Aimbot.Settings.FriendCheck then return false end
+    
     if player.Team and target.Team then
-        return player.Team == target.Team
+        if player.Team == target.Team then
+            return true
+        end
     end
+    
+    if target:IsFriendsWith(player.UserId) then
+        return true
+    end
+    
     return false
+end
+
+function Aimbot.UpdateFOVCircle()
+    if Aimbot.FOVCircle then
+        Aimbot.FOVCircle:Destroy()
+        Aimbot.FOVCircle = nil
+    end
+    
+    if not Aimbot.Settings.DrawFOV or not Aimbot.Enabled then return end
+    
+    local player = game.Players.LocalPlayer
+    local gui = player:WaitForChild("PlayerGui")
+    
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.new(0, Aimbot.Settings.FOV * 4, 0, Aimbot.Settings.FOV * 4)
+    circle.Position = UDim2.new(0.5, -Aimbot.Settings.FOV * 2, 0.5, -Aimbot.Settings.FOV * 2)
+    circle.BackgroundTransparency = 1
+    circle.ZIndex = 999
+    circle.Parent = gui
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Aimbot.Settings.FOVColor
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = circle
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = circle
+    
+    Aimbot.FOVCircle = circle
 end
 
 function Aimbot.Start(player)
@@ -47,7 +89,11 @@ function Aimbot.Start(player)
     Aimbot.Enabled = true
     
     Aimbot.Connection = RunService.RenderStepped:Connect(function()
+        if not Aimbot.Enabled then return end
+        
         local cam = workspace.CurrentCamera
+        if not cam then return end
+        
         local closest = nil
         local closestDist = Aimbot.Settings.FOV
         
@@ -55,7 +101,9 @@ function Aimbot.Start(player)
             if target ~= player and target.Character then
                 if not Aimbot.IsFriend(player, target) then
                     local head = target.Character:FindFirstChild("Head")
-                    if head then
+                    local humanoid = target.Character:FindFirstChild("Humanoid")
+                    
+                    if head and humanoid and humanoid.Health > 0 then
                         local sp, onScreen = cam:WorldToScreenPoint(head.Position)
                         if onScreen then
                             local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
@@ -76,6 +124,8 @@ function Aimbot.Start(player)
             cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
         end
     end)
+    
+    Aimbot.UpdateFOVCircle()
 end
 
 function Aimbot.Stop()
@@ -85,9 +135,22 @@ function Aimbot.Stop()
         Aimbot.Connection:Disconnect()
         Aimbot.Connection = nil
     end
+    
+    if Aimbot.FOVCircle then
+        Aimbot.FOVCircle:Destroy()
+        Aimbot.FOVCircle = nil
+    end
+end
+
+function Aimbot.RefreshFOV()
+    if Aimbot.Enabled then
+        Aimbot.UpdateFOVCircle()
+    end
 end
 
 function Aimbot.BuildSettings(content)
+    local ColorPicker = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Core/ColorPicker.lua"))()
+    
     local function createSlider(min, max, current, callback)
         local slider = Instance.new("Frame")
         slider.Size = UDim2.new(1, 0, 0, 35)
@@ -161,9 +224,6 @@ function Aimbot.BuildSettings(content)
         end)
     end
     
-    createSlider(10, 180, Aimbot.Settings.FOV, function(v) Aimbot.Settings.FOV = v end)
-    createSlider(1, 20, Aimbot.Settings.Speed, function(v) Aimbot.Settings.Speed = v end)
-    
     local function createToggle(text, default, callback)
         local container = Instance.new("Frame")
         container.Size = UDim2.new(1, 0, 0, 30)
@@ -227,8 +287,42 @@ function Aimbot.BuildSettings(content)
         end)
     end
     
-    createToggle("Wall Check", Aimbot.Settings.WallCheck, function(v) Aimbot.Settings.WallCheck = v end)
-    createToggle("Friend Check", Aimbot.Settings.FriendCheck, function(v) Aimbot.Settings.FriendCheck = v end)
+    createSlider(10, 180, Aimbot.Settings.FOV, function(v)
+        Aimbot.Settings.FOV = v
+        Aimbot.RefreshFOV()
+    end)
+    
+    createSlider(1, 20, Aimbot.Settings.Speed, function(v)
+        Aimbot.Settings.Speed = v
+    end)
+    
+    createToggle("Wall Check", Aimbot.Settings.WallCheck, function(v)
+        Aimbot.Settings.WallCheck = v
+    end)
+    
+    createToggle("Friend Check", Aimbot.Settings.FriendCheck, function(v)
+        Aimbot.Settings.FriendCheck = v
+    end)
+    
+    createToggle("Draw FOV", Aimbot.Settings.DrawFOV, function(v)
+        Aimbot.Settings.DrawFOV = v
+        Aimbot.RefreshFOV()
+    end)
+    
+    local colorLabel = Instance.new("TextLabel")
+    colorLabel.Size = UDim2.new(1, 0, 0, 20)
+    colorLabel.BackgroundTransparency = 1
+    colorLabel.Text = "FOV Color:"
+    colorLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    colorLabel.Font = Enum.Font.GothamBold
+    colorLabel.TextSize = 11
+    colorLabel.TextXAlignment = Enum.TextXAlignment.Left
+    colorLabel.Parent = content
+    
+    local picker = ColorPicker.Create(content, function(color)
+        Aimbot.Settings.FOVColor = color
+        Aimbot.RefreshFOV()
+    end, Aimbot.Settings.FOVColor)
 end
 
 return Aimbot

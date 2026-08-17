@@ -11,6 +11,13 @@ local ESP = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/Scr
 local Aimbot = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Aimbot.lua"))()
 local TriggerBot = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/TriggerBot.lua"))()
 local InfinityJump = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/InfinityJump.lua"))()
+local BunnyHop = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/BunnyHop.lua"))()
+local Teleport = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Teleport.lua"))()
+local Spider = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Spider.lua"))()
+local Tracers = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Tracers.lua"))()
+local Chams = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Chams.lua"))()
+local NoFog = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/NoFog.lua"))()
+local Fullbright = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Fullbright.lua"))()
 
 local window = Window.Create(player)
 local tabs = Tabs.Create(window.LeftPanel)
@@ -24,7 +31,7 @@ moduleContainer.Size = UDim2.new(1, -20, 1, -20)
 moduleContainer.Position = UDim2.new(0, 10, 0, 10)
 moduleContainer.BackgroundTransparency = 1
 moduleContainer.BorderSizePixel = 0
-moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 700)
+moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 900)
 moduleContainer.ScrollBarThickness = 3
 moduleContainer.Parent = window.RightPanel
 
@@ -54,10 +61,17 @@ end
 createModule("FLY", "Movement", Fly)
 createModule("NOCLIP", "Movement", Noclip)
 createModule("SPEED", "Movement", Speed)
+createModule("BUNNY HOP", "Movement", BunnyHop)
+createModule("TELEPORT", "Movement", Teleport)
+createModule("SPIDER", "Movement", Spider)
+createModule("INFINITY JUMP", "Movement", InfinityJump)
 createModule("ESP", "Visuals", ESP)
+createModule("TRACERS", "Visuals", Tracers)
+createModule("CHAMS", "Visuals", Chams)
+createModule("NO FOG", "Visuals", NoFog)
+createModule("FULLBRIGHT", "Visuals", Fullbright)
 createModule("AIMBOT", "Combat", Aimbot)
 createModule("TRIGGER BOT", "Combat", TriggerBot)
-createModule("INFINITY JUMP", "Movement", InfinityJump)
 
 tabs.SetOnChanged(function(tabName)
     for _, moduleData in pairs(allModules) do
