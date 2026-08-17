@@ -2,8 +2,7 @@
 
 InfinityJump.Settings = {
     JumpPower = 100,
-    AutoJump = false,
-    Keybind = nil
+    AutoJump = false
 }
 
 InfinityJump.Enabled = false
@@ -17,7 +16,7 @@ function InfinityJump.Start(player)
 
     InfinityJump.Connection = RunService.Heartbeat:Connect(function()
         if not InfinityJump.Enabled then return end
-        
+
         local character = player.Character
         if not character then return end
 
