@@ -75,7 +75,7 @@ function ColorPicker.Create(parent, callback, defaultColor)
         NumberSequenceKeypoint.new(0, 1),
         NumberSequenceKeypoint.new(1, 0)
     })
-    blackGradient.Rotation = 270
+    blackGradient.Rotation = 90
     blackGradient.Parent = colorCanvas
     
     local canvasIndicator = Instance.new("Frame")
