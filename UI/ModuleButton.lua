@@ -16,6 +16,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     button.Font = Enum.Font.GothamBlack
     button.TextSize = 14
     button.AutoButtonColor = false
+    button.ZIndex = 5
     button.Parent = wrapper
     
     local corner = Instance.new("UICorner")
@@ -27,6 +28,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     indicator.Position = UDim2.new(0, 15, 0.5, -6)
     indicator.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
     indicator.BorderSizePixel = 0
+    indicator.ZIndex = 6
     indicator.Parent = button
     
     local indicatorCorner = Instance.new("UICorner")
@@ -43,7 +45,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     settingsBtn.Font = Enum.Font.GothamBlack
     settingsBtn.TextSize = 11
     settingsBtn.AutoButtonColor = false
-    settingsBtn.ZIndex = 100
+    settingsBtn.ZIndex = 7
     settingsBtn.Parent = button
     
     local settingsCorner = Instance.new("UICorner")
@@ -56,20 +58,19 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     settingsPanel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsPanel.BorderSizePixel = 0
     settingsPanel.ClipsDescendants = true
-    settingsPanel.ZIndex = 50
+    settingsPanel.ZIndex = 4
     settingsPanel.Parent = wrapper
     
     local panelCorner = Instance.new("UICorner")
     panelCorner.CornerRadius = UDim.new(0, 10)
     panelCorner.Parent = settingsPanel
     
-    local settingsContent = Instance.new("ScrollingFrame")
+    local settingsContent = Instance.new("Frame")
     settingsContent.Size = UDim2.new(1, -20, 1, -20)
     settingsContent.Position = UDim2.new(0, 10, 0, 10)
-    settingsContent.BackgroundTransparency = 1
+    settingsContent.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsContent.BorderSizePixel = 0
-    settingsContent.CanvasSize = UDim2.new(0, 0, 0, 200)
-    settingsContent.ScrollBarThickness = 2
+    settingsContent.ZIndex = 4
     settingsContent.Parent = settingsPanel
     
     local settingsList = Instance.new("UIListLayout")
@@ -132,13 +133,18 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 settingsBuilder(settingsContent)
             end
             
+            for _, child in pairs(settingsContent:GetChildren()) do
+                if child:IsA("Frame") or child:IsA("TextButton") or child:IsA("TextLabel") then
+                    child.ZIndex = 4
+                end
+            end
+            
             local itemCount = 0
             for _, child in pairs(settingsContent:GetChildren()) do
                 if child ~= settingsList then itemCount += 1 end
             end
             
             local targetHeight = math.max(itemCount * 40 + 20, 80)
-            settingsContent.CanvasSize = UDim2.new(0, 0, 0, targetHeight)
             animateOpen(targetHeight)
         else
             settingsBtn.Text = "¡"
