@@ -60,7 +60,7 @@ function ESP.Stop()
 end
 
 function ESP.BuildSettings(content)
-    local ColorPicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Core/ColorPicker.lua"))()
+    local ColorPicker = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Core/ColorPicker.lua"))()
     
     local modeContainer = Instance.new("Frame")
     modeContainer.Size = UDim2.new(1, 0, 0, 30)
