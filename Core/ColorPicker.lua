@@ -63,6 +63,7 @@ function ColorPicker.Create(parent, callback, defaultColor)
         NumberSequenceKeypoint.new(0, 0),
         NumberSequenceKeypoint.new(1, 1)
     })
+    whiteGradient.Rotation = 0
     whiteGradient.Parent = colorCanvas
     
     local blackGradient = Instance.new("UIGradient")
