@@ -54,25 +54,29 @@ function ColorPicker.Create(parent, callback, defaultColor)
     canvasCorner.CornerRadius = UDim.new(0, 6)
     canvasCorner.Parent = colorCanvas
     
-    local saturationGradient = Instance.new("UIGradient")
-    saturationGradient.Color = ColorSequence.new({
+    local whiteGradient = Instance.new("UIGradient")
+    whiteGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-        ColorSequenceKeypoint.new(1, hslToRgb(hue, 1, 0.5))
+        ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
     })
-    saturationGradient.Rotation = 0
-    saturationGradient.Parent = colorCanvas
+    whiteGradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+    whiteGradient.Rotation = 0
+    whiteGradient.Parent = colorCanvas
     
-    local brightnessGradient = Instance.new("UIGradient")
-    brightnessGradient.Color = ColorSequence.new({
+    local blackGradient = Instance.new("UIGradient")
+    blackGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
         ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
     })
-    brightnessGradient.Transparency = NumberSequence.new({
+    blackGradient.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 1),
         NumberSequenceKeypoint.new(1, 0)
     })
-    brightnessGradient.Rotation = 90
-    brightnessGradient.Parent = colorCanvas
+    blackGradient.Rotation = 90
+    blackGradient.Parent = colorCanvas
     
     local canvasIndicator = Instance.new("Frame")
     canvasIndicator.Size = UDim2.new(0, 10, 0, 10)
@@ -143,10 +147,6 @@ function ColorPicker.Create(parent, callback, defaultColor)
     
     local function updateCanvas()
         colorCanvas.BackgroundColor3 = hslToRgb(hue, 1, 0.5)
-        saturationGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, hslToRgb(hue, 1, 0.5))
-        })
     end
     
     local function updateIndicators()
