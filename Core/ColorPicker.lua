@@ -54,24 +54,26 @@ function ColorPicker.Create(parent, callback, defaultColor)
     canvasCorner.CornerRadius = UDim.new(0, 6)
     canvasCorner.Parent = colorCanvas
     
+    local hueColor = hslToRgb(hue, 1, 0.5)
+    
     local saturationGradient = Instance.new("UIGradient")
     saturationGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-        ColorSequenceKeypoint.new(1, hslToRgb(hue, 1, 0.5))
+        ColorSequenceKeypoint.new(1, hueColor)
     })
     saturationGradient.Parent = colorCanvas
     
     local brightnessGradient = Instance.new("UIGradient")
     brightnessGradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0),
-        NumberSequenceKeypoint.new(1, 1)
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(1, 0)
     })
     brightnessGradient.Rotation = 90
     brightnessGradient.Parent = colorCanvas
     
     local canvasIndicator = Instance.new("Frame")
     canvasIndicator.Size = UDim2.new(0, 10, 0, 10)
-    canvasIndicator.Position = UDim2.new(1, -5, 0, -5)
+    canvasIndicator.Position = UDim2.new(saturation, -5, 1 - brightness, -5)
     canvasIndicator.BackgroundColor3 = Color3.new(1, 1, 1)
     canvasIndicator.BorderSizePixel = 0
     canvasIndicator.ZIndex = 10
@@ -110,7 +112,7 @@ function ColorPicker.Create(parent, callback, defaultColor)
     
     local hueIndicator = Instance.new("Frame")
     hueIndicator.Size = UDim2.new(0, 14, 0, 14)
-    hueIndicator.Position = UDim2.new(0, -7, 0.5, -7)
+    hueIndicator.Position = UDim2.new(hue, -7, 0.5, -7)
     hueIndicator.BackgroundColor3 = Color3.new(1, 1, 1)
     hueIndicator.BorderSizePixel = 0
     hueIndicator.ZIndex = 10
@@ -137,9 +139,10 @@ function ColorPicker.Create(parent, callback, defaultColor)
     previewCorner.Parent = preview
     
     local function updateCanvas()
+        local hueColor = hslToRgb(hue, 1, 0.5)
         saturationGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, hslToRgb(hue, 1, 0.5))
+            ColorSequenceKeypoint.new(1, hueColor)
         })
     end
     
