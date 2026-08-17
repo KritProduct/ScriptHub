@@ -60,7 +60,7 @@ function Teleport.BuildSettings(content)
         local player = game.Players.LocalPlayer
         
         for _, target in pairs(game.Players:GetPlayers()) do
-            if target.Name == targetName and target ~= player then
+            if string.lower(target.Name) == string.lower(targetName) and target ~= player then
                 if target.Character then
                     local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
                     local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")

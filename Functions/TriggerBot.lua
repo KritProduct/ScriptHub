@@ -1,7 +1,7 @@
 local TriggerBot = {}
 
 TriggerBot.Settings = {
-    Delay = 0.1,
+    Delay = 0.05,
     Keybind = nil
 }
 
@@ -11,6 +11,7 @@ TriggerBot.LastShot = 0
 
 function TriggerBot.Start(player)
     local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
     
     TriggerBot.Enabled = true
     
@@ -32,18 +33,14 @@ function TriggerBot.Start(player)
                         local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
                         local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
                         
-                        if dist < 50 then
+                        if dist < 60 then
                             if os.clock() - TriggerBot.LastShot >= TriggerBot.Settings.Delay then
                                 TriggerBot.LastShot = os.clock()
                                 
                                 pcall(function()
-                                    local character = player.Character
-                                    if character then
-                                        local tool = character:FindFirstChildOfClass("Tool")
-                                        if tool then
-                                            tool:Activate()
-                                        end
-                                    end
+                                    mouse1press()
+                                    task.wait(0.01)
+                                    mouse1release()
                                 end)
                             end
                         end
@@ -102,7 +99,7 @@ function TriggerBot.BuildSettings(content)
     fillCorner.Parent = fill
     
     local function updateVisual(value)
-        local percent = (value - 0) / (1 - 0)
+        local percent = (value - 0.01) / (1 - 0.01)
         fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
         label.Text = tostring(math.floor(value * 100) / 100)
     end
@@ -113,18 +110,16 @@ function TriggerBot.BuildSettings(content)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             local RunService = game:GetService("RunService")
             local UserInputService = game:GetService("UserInputService")
-            
             local connection
             connection = RunService.RenderStepped:Connect(function()
                 local mouseX = UserInputService:GetMouseLocation().X
                 local startX = track.AbsolutePosition.X
                 local endX = track.AbsolutePosition.X + track.AbsoluteSize.X
                 local percent = math.clamp((mouseX - startX) / (endX - startX), 0, 1)
-                local value = percent
+                local value = 0.01 + percent * (1 - 0.01)
                 TriggerBot.Settings.Delay = value
                 updateVisual(value)
             end)
-            
             local endConnection
             endConnection = UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
