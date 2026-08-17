@@ -29,19 +29,28 @@ function TriggerBot.Start(player)
                 if humanoid and humanoid.Health > 0 then
                     local head = target.Character:FindFirstChild("Head")
                     if head then
-                        local screenPos = cam:WorldToScreenPoint(head.Position)
-                        local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
-                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+                        local screenPos, onScreen = cam:WorldToScreenPoint(head.Position)
                         
-                        if dist < 60 then
-                            if os.clock() - TriggerBot.LastShot >= TriggerBot.Settings.Delay then
-                                TriggerBot.LastShot = os.clock()
-                                
-                                pcall(function()
-                                    mouse1press()
-                                    task.wait(0.01)
-                                    mouse1release()
-                                end)
+                        if onScreen then
+                            local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+                            local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+                            
+                            if dist < 50 then
+                                if os.clock() - TriggerBot.LastShot >= TriggerBot.Settings.Delay then
+                                    TriggerBot.LastShot = os.clock()
+                                    
+                                    pcall(function()
+                                        local character = player.Character
+                                        if character then
+                                            local tool = character:FindFirstChildOfClass("Tool")
+                                            if tool then
+                                                tool:Activate()
+                                                task.wait(0.05)
+                                                tool:Deactivate()
+                                            end
+                                        end
+                                    end)
+                                end
                             end
                         end
                     end
