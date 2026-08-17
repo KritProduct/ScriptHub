@@ -7,6 +7,7 @@ local ModuleButton = loadstring(game:HttpGet("https://raw.githubusercontent.com/
 local Fly = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fly.lua"))()
 local Noclip = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Noclip.lua"))()
 local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Speed.lua"))()
+local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/InfinityJump.lua"))()
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ESP.lua"))()
 local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Aimbot.lua"))()
 local TriggerBot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TriggerBot.lua"))()
@@ -23,7 +24,7 @@ moduleContainer.Size = UDim2.new(1, -20, 1, -20)
 moduleContainer.Position = UDim2.new(0, 10, 0, 10)
 moduleContainer.BackgroundTransparency = 1
 moduleContainer.BorderSizePixel = 0
-moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 600)
+moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 700)
 moduleContainer.ScrollBarThickness = 3
 moduleContainer.Parent = window.RightPanel
 
@@ -53,6 +54,7 @@ end
 createModule("FLY", "Movement", Fly)
 createModule("NOCLIP", "Movement", Noclip)
 createModule("SPEED", "Movement", Speed)
+createModule("INFINITY JUMP", "Movement", InfinityJump)
 createModule("ESP", "Visuals", ESP)
 createModule("AIMBOT", "Combat", Aimbot)
 createModule("TRIGGER BOT", "Combat", TriggerBot)
