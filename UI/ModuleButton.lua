@@ -1,5 +1,6 @@
 local ModuleButton = {}
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local wrapper = Instance.new("Frame")
@@ -35,6 +36,23 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     indicatorCorner.CornerRadius = UDim.new(0, 6)
     indicatorCorner.Parent = indicator
     
+    local bindBtn = Instance.new("TextButton")
+    bindBtn.Size = UDim2.new(0, 35, 0, 35)
+    bindBtn.Position = UDim2.new(1, -82, 0.5, -17)
+    bindBtn.Text = "..."
+    bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    bindBtn.BorderSizePixel = 0
+    bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+    bindBtn.Font = Enum.Font.GothamBlack
+    bindBtn.TextSize = 12
+    bindBtn.AutoButtonColor = false
+    bindBtn.ZIndex = 12
+    bindBtn.Parent = button
+    
+    local bindCorner = Instance.new("UICorner")
+    bindCorner.CornerRadius = UDim.new(0, 8)
+    bindCorner.Parent = bindBtn
+    
     local settingsBtn = Instance.new("TextButton")
     settingsBtn.Size = UDim2.new(0, 35, 0, 35)
     settingsBtn.Position = UDim2.new(1, -42, 0.5, -17)
@@ -43,7 +61,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     settingsBtn.BorderSizePixel = 0
     settingsBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
     settingsBtn.Font = Enum.Font.GothamBlack
-    settingsBtn.TextSize = 18
+    settingsBtn.TextSize = 14
     settingsBtn.AutoButtonColor = false
     settingsBtn.ZIndex = 12
     settingsBtn.Parent = button
@@ -80,6 +98,8 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local enabled = false
     local settingsOpen = false
     local animating = false
+    local listening = false
+    local keybind = nil
     
     local function setZIndexRecursive(instance, z)
         instance.ZIndex = z
@@ -113,8 +133,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         end)
     end
     
-    button.MouseButton1Click:Connect(function()
-        if animating then return end
+    local function toggleModule()
         enabled = not enabled
         if enabled then
             indicator.BackgroundColor3 = Color3.fromRGB(45, 255, 110)
@@ -126,6 +145,36 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
             button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         end
         if toggleCallback then toggleCallback(enabled) end
+    end
+    
+    button.MouseButton1Click:Connect(function()
+        if animating then return end
+        toggleModule()
+    end)
+    
+    bindBtn.MouseButton1Click:Connect(function()
+        listening = true
+        bindBtn.Text = "..."
+        bindBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+        bindBtn.TextColor3 = Color3.new(1, 1, 1)
+        
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                keybind = input.KeyCode
+                bindBtn.Text = input.KeyCode.Name:sub(1, 1)
+                bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+                listening = false
+                connection:Disconnect()
+            end
+        end)
+    end)
+    
+    UserInputService.InputBegan:Connect(function(input)
+        if keybind and input.KeyCode == keybind and not listening then
+            toggleModule()
+        end
     end)
     
     settingsBtn.MouseButton1Click:Connect(function()
@@ -165,7 +214,9 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         Wrapper = wrapper,
         Button = button,
         Tab = tab,
-        SetVisible = function(visible) wrapper.Visible = visible end
+        SetVisible = function(visible) wrapper.Visible = visible end,
+        SetKeybind = function(key) keybind = key end,
+        GetKeybind = function() return keybind end
     }
 end
 
