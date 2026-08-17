@@ -7,6 +7,7 @@ Aimbot.Settings = {
     FriendCheck = false,
     DrawFOV = false,
     FOVColor = Color3.fromRGB(255, 255, 255),
+    TargetPart = "Head",
     Keybind = nil
 }
 
@@ -51,6 +52,20 @@ function Aimbot.IsFriend(player, target)
     end
     
     return false
+end
+
+function Aimbot.GetTargetPart(character)
+    local partName = Aimbot.Settings.TargetPart
+    
+    if partName == "Head" then
+        return character:FindFirstChild("Head")
+    elseif partName == "Torso" then
+        return character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") or character:FindFirstChild("HumanoidRootPart")
+    elseif partName == "Legs" then
+        return character:FindFirstChild("LeftLeg") or character:FindFirstChild("RightLeg") or character:FindFirstChild("LowerTorso")
+    end
+    
+    return character:FindFirstChild("Head")
 end
 
 function Aimbot.UpdateFOVCircle()
@@ -108,16 +123,16 @@ function Aimbot.Start(player)
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
                 if not Aimbot.IsFriend(player, target) then
-                    local head = target.Character:FindFirstChild("Head")
+                    local targetPart = Aimbot.GetTargetPart(target.Character)
                     local humanoid = target.Character:FindFirstChild("Humanoid")
                     
-                    if head and humanoid and humanoid.Health > 0 then
-                        local sp, onScreen = cam:WorldToScreenPoint(head.Position)
+                    if targetPart and humanoid and humanoid.Health > 0 then
+                        local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
                         if onScreen then
                             local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
                             if dist < closestDist then
                                 if Aimbot.IsVisible(player, target) then
-                                    closest = head
+                                    closest = targetPart
                                     closestDist = dist
                                 end
                             end
@@ -322,6 +337,51 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.DrawFOV = v
         Aimbot.RefreshFOV()
     end)
+    
+    local partLabel = Instance.new("TextLabel")
+    partLabel.Size = UDim2.new(1, 0, 0, 20)
+    partLabel.BackgroundTransparency = 1
+    partLabel.Text = "Target Part: " .. Aimbot.Settings.TargetPart
+    partLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    partLabel.Font = Enum.Font.GothamBold
+    partLabel.TextSize = 11
+    partLabel.TextXAlignment = Enum.TextXAlignment.Left
+    partLabel.Parent = content
+    
+    local parts = {"Head", "Torso", "Legs"}
+    local partButtons = {}
+    
+    for i, part in ipairs(parts) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 90, 0, 30)
+        btn.Position = UDim2.new(0, (i - 1) * 95, 0, 0)
+        btn.Text = part
+        btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        btn.BorderSizePixel = 0
+        btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+        btn.Font = Enum.Font.GothamBlack
+        btn.TextSize = 11
+        btn.AutoButtonColor = false
+        btn.Parent = content
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            Aimbot.Settings.TargetPart = part
+            partLabel.Text = "Target Part: " .. part
+            
+            for _, b in pairs(partButtons) do
+                b.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                b.TextColor3 = Color3.fromRGB(160, 160, 160)
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            btn.TextColor3 = Color3.new(1, 1, 1)
+        end)
+        
+        table.insert(partButtons, btn)
+    end
 end
 
 return Aimbot
