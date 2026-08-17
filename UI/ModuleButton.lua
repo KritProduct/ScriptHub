@@ -83,15 +83,23 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     panelCorner.CornerRadius = UDim.new(0, 10)
     panelCorner.Parent = settingsPanel
     
-    local settingsContent = Instance.new("ScrollingFrame")
-    settingsContent.Size = UDim2.new(1, -20, 1, -20)
-    settingsContent.Position = UDim2.new(0, 10, 0, 10)
-    settingsContent.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
-    settingsContent.BorderSizePixel = 0
-    settingsContent.CanvasSize = UDim2.new(0, 0, 0, 600)
-    settingsContent.ScrollBarThickness = 3
+    local settingsScroll = Instance.new("ScrollingFrame")
+    settingsScroll.Size = UDim2.new(1, -10, 1, -10)
+    settingsScroll.Position = UDim2.new(0, 5, 0, 5)
+    settingsScroll.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+    settingsScroll.BorderSizePixel = 0
+    settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 500)
+    settingsScroll.ScrollBarThickness = 4
+    settingsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+    settingsScroll.ZIndex = 9
+    settingsScroll.Parent = settingsPanel
+    
+    local settingsContent = Instance.new("Frame")
+    settingsContent.Size = UDim2.new(1, -10, 0, 500)
+    settingsContent.Position = UDim2.new(0, 5, 0, 0)
+    settingsContent.BackgroundTransparency = 1
     settingsContent.ZIndex = 9
-    settingsContent.Parent = settingsPanel
+    settingsContent.Parent = settingsScroll
     
     local settingsList = Instance.new("UIListLayout")
     settingsList.Padding = UDim.new(0, 5)
@@ -217,9 +225,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 end
             end
             
-            local targetHeight = 250
-            settingsContent.CanvasSize = UDim2.new(0, 0, 0, 600)
-            animateOpen(targetHeight)
+            animateOpen(250)
         else
             settingsBtn.Text = "+"
             animateClose()
