@@ -1,7 +1,7 @@
 local Aimbot = {}
 
 Aimbot.Settings = {
-    FOV = 150,
+    FOV = 300,
     Speed = 10,
     WallCheck = false,
     FriendCheck = false,
@@ -13,7 +13,6 @@ Aimbot.Settings = {
 
 Aimbot.Enabled = false
 Aimbot.Connection = nil
-Aimbot.FOVCircle = nil
 Aimbot.FOVGui = nil
 
 function Aimbot.IsVisible(player, target)
@@ -76,19 +75,18 @@ function Aimbot.UpdateFOVCircle()
     
     if not Aimbot.Settings.DrawFOV then return end
     
-    local player = game.Players.LocalPlayer
-    
     local gui = Instance.new("ScreenGui")
     gui.Name = "FOVCircle"
     gui.ResetOnSpawn = false
     gui.IgnoreGuiInset = true
     gui.Parent = game.CoreGui
     
-    local size = Aimbot.Settings.FOV * 2
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local fovRadius = Aimbot.Settings.FOV
     
     local circle = Instance.new("Frame")
-    circle.Size = UDim2.new(0, size, 0, size)
-    circle.Position = UDim2.new(0.5, -size/2, 0.5, -size/2)
+    circle.Size = UDim2.new(0, fovRadius * 2, 0, fovRadius * 2)
+    circle.Position = UDim2.new(0.5, -fovRadius, 0.5, -fovRadius)
     circle.BackgroundTransparency = 1
     circle.ZIndex = 9999
     circle.Parent = gui
@@ -179,25 +177,15 @@ function Aimbot.BuildSettings(content)
         local nameLabel = Instance.new("TextLabel")
         nameLabel.Size = UDim2.new(1, 0, 0, 20)
         nameLabel.BackgroundTransparency = 1
-        nameLabel.Text = name
+        nameLabel.Text = name .. ": " .. math.floor(current)
         nameLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
         nameLabel.Font = Enum.Font.GothamBold
         nameLabel.TextSize = 11
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
         nameLabel.Parent = container
         
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(0, 50, 0, 20)
-        label.Position = UDim2.new(1, -50, 0, 22)
-        label.BackgroundTransparency = 1
-        label.Text = tostring(math.floor(current))
-        label.TextColor3 = Color3.fromRGB(80, 140, 255)
-        label.Font = Enum.Font.GothamBlack
-        label.TextSize = 11
-        label.Parent = container
-        
         local track = Instance.new("Frame")
-        track.Size = UDim2.new(1, -60, 0, 6)
+        track.Size = UDim2.new(1, 0, 0, 6)
         track.Position = UDim2.new(0, 0, 0, 28)
         track.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
         track.BorderSizePixel = 0
@@ -221,7 +209,7 @@ function Aimbot.BuildSettings(content)
         local function updateVisual(value)
             local percent = (value - min) / (max - min)
             fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
-            label.Text = tostring(math.floor(value))
+            nameLabel.Text = name .. ": " .. math.floor(value)
         end
         
         updateVisual(current)
@@ -316,10 +304,10 @@ function Aimbot.BuildSettings(content)
         end)
     end
     
-    createSlider(10, 180, Aimbot.Settings.FOV, function(v)
+    createSlider(50, 500, Aimbot.Settings.FOV, function(v)
         Aimbot.Settings.FOV = v
         Aimbot.RefreshFOV()
-    end, "FOV")
+    end, "FOV Radius")
     
     createSlider(1, 20, Aimbot.Settings.Speed, function(v)
         Aimbot.Settings.Speed = v
@@ -349,7 +337,6 @@ function Aimbot.BuildSettings(content)
     partLabel.Parent = content
     
     local parts = {"Head", "Torso", "Legs"}
-    local partButtons = {}
     
     for i, part in ipairs(parts) do
         local btn = Instance.new("TextButton")
@@ -371,16 +358,7 @@ function Aimbot.BuildSettings(content)
         btn.MouseButton1Click:Connect(function()
             Aimbot.Settings.TargetPart = part
             partLabel.Text = "Target Part: " .. part
-            
-            for _, b in pairs(partButtons) do
-                b.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-                b.TextColor3 = Color3.fromRGB(160, 160, 160)
-            end
-            btn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            btn.TextColor3 = Color3.new(1, 1, 1)
         end)
-        
-        table.insert(partButtons, btn)
     end
 end
 
