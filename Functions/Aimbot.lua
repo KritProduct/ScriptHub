@@ -58,19 +58,18 @@ function Aimbot.UpdateFOVCircle()
         Aimbot.FOVCircle = nil
     end
     
-    if not Aimbot.Settings.DrawFOV or not Aimbot.Enabled then return end
+    if not Aimbot.Settings.DrawFOV then return end
     
     local player = game.Players.LocalPlayer
     local gui = player:WaitForChild("PlayerGui")
     
-    local size = Aimbot.Settings.FOV * 3
+    local size = Aimbot.Settings.FOV * 4
     
     local circle = Instance.new("Frame")
     circle.Size = UDim2.new(0, size, 0, size)
     circle.Position = UDim2.new(0.5, -size/2, 0.5, -size/2)
-    circle.AnchorPoint = Vector2.new(0.5, 0.5)
     circle.BackgroundTransparency = 1
-    circle.ZIndex = 999
+    circle.ZIndex = 9999
     circle.Parent = gui
     
     local corner = Instance.new("UICorner")
@@ -80,7 +79,7 @@ function Aimbot.UpdateFOVCircle()
     local stroke = Instance.new("UIStroke")
     stroke.Color = Aimbot.Settings.FOVColor
     stroke.Thickness = 2
-    stroke.Transparency = 0.3
+    stroke.Transparency = 0.2
     stroke.Parent = circle
     
     Aimbot.FOVCircle = circle
@@ -146,9 +145,7 @@ function Aimbot.Stop()
 end
 
 function Aimbot.RefreshFOV()
-    if Aimbot.Enabled then
-        Aimbot.UpdateFOVCircle()
-    end
+    Aimbot.UpdateFOVCircle()
 end
 
 function Aimbot.BuildSettings(content)
