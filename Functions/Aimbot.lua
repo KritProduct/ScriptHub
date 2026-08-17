@@ -70,15 +70,28 @@ function Aimbot.UpdateFOVCircle()
     circle.ZIndex = 999
     circle.Parent = gui
     
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Aimbot.Settings.FOVColor
-    stroke.Thickness = 1.5
-    stroke.Transparency = 0.5
-    stroke.Parent = circle
-    
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(1, 0)
     corner.Parent = circle
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Aimbot.Settings.FOVColor
+    stroke.Thickness = 2
+    stroke.Transparency = 0.3
+    stroke.Parent = circle
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(1, -4, 1, -4)
+    fill.Position = UDim2.new(0, 2, 0, 2)
+    fill.BackgroundColor3 = Aimbot.Settings.FOVColor
+    fill.BackgroundTransparency = 0.95
+    fill.BorderSizePixel = 0
+    fill.ZIndex = 999
+    fill.Parent = circle
+    
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = fill
     
     Aimbot.FOVCircle = circle
 end
