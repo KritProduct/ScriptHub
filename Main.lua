@@ -13,9 +13,9 @@ local TriggerBot = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProd
 local InfinityJump = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/InfinityJump.lua"))()
 local BunnyHop = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/BunnyHop.lua"))()
 local Teleport = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Teleport.lua"))()
-local Spider = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Spider.lua"))()
+
 local Tracers = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Tracers.lua"))()
-local Chams = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Chams.lua"))()
+
 local NoFog = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/NoFog.lua"))()
 local Fullbright = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Fullbright.lua"))()
 
@@ -63,11 +63,11 @@ createModule("NOCLIP", "Movement", Noclip)
 createModule("SPEED", "Movement", Speed)
 createModule("BUNNY HOP", "Movement", BunnyHop)
 createModule("TELEPORT", "Movement", Teleport)
-createModule("SPIDER", "Movement", Spider)
+
 createModule("INFINITY JUMP", "Movement", InfinityJump)
 createModule("ESP", "Visuals", ESP)
 createModule("TRACERS", "Visuals", Tracers)
-createModule("CHAMS", "Visuals", Chams)
+
 createModule("NO FOG", "Visuals", NoFog)
 createModule("FULLBRIGHT", "Visuals", Fullbright)
 createModule("AIMBOT", "Combat", Aimbot)
@@ -122,3 +122,4 @@ makeDraggable(window.Main, window.TitleBar)
 
 print("Script Hub loaded!")
 print("K - toggle menu")
+

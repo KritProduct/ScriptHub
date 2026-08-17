@@ -149,30 +149,38 @@ function Aimbot.RefreshFOV()
 end
 
 function Aimbot.BuildSettings(content)
-    local ColorPicker = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Core/ColorPicker.lua"))()
-    
-    local function createSlider(min, max, current, callback)
-        local slider = Instance.new("Frame")
-        slider.Size = UDim2.new(1, 0, 0, 35)
-        slider.BackgroundTransparency = 1
-        slider.Parent = content
+    local function createSlider(min, max, current, callback, name)
+        local container = Instance.new("Frame")
+        container.Size = UDim2.new(1, 0, 0, 50)
+        container.BackgroundTransparency = 1
+        container.Parent = content
+        
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(1, 0, 0, 20)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = name
+        nameLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextSize = 11
+        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nameLabel.Parent = container
         
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(0, 50, 0, 20)
-        label.Position = UDim2.new(1, -50, 0, 0)
+        label.Position = UDim2.new(1, -50, 0, 22)
         label.BackgroundTransparency = 1
         label.Text = tostring(math.floor(current))
         label.TextColor3 = Color3.fromRGB(80, 140, 255)
         label.Font = Enum.Font.GothamBlack
         label.TextSize = 11
-        label.Parent = slider
+        label.Parent = container
         
         local track = Instance.new("Frame")
         track.Size = UDim2.new(1, -60, 0, 6)
-        track.Position = UDim2.new(0, 0, 0, 20)
+        track.Position = UDim2.new(0, 0, 0, 28)
         track.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
         track.BorderSizePixel = 0
-        track.Parent = slider
+        track.Parent = container
         
         local trackCorner = Instance.new("UICorner")
         trackCorner.CornerRadius = UDim.new(0, 3)
@@ -180,10 +188,10 @@ function Aimbot.BuildSettings(content)
         
         local fill = Instance.new("Frame")
         fill.Size = UDim2.new(0, 0, 0, 6)
-        fill.Position = UDim2.new(0, 0, 0, 20)
+        fill.Position = UDim2.new(0, 0, 0, 28)
         fill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
         fill.BorderSizePixel = 0
-        fill.Parent = slider
+        fill.Parent = container
         
         local fillCorner = Instance.new("UICorner")
         fillCorner.CornerRadius = UDim.new(0, 3)
@@ -290,11 +298,11 @@ function Aimbot.BuildSettings(content)
     createSlider(10, 180, Aimbot.Settings.FOV, function(v)
         Aimbot.Settings.FOV = v
         Aimbot.RefreshFOV()
-    end)
+    end, "FOV")
     
     createSlider(1, 20, Aimbot.Settings.Speed, function(v)
         Aimbot.Settings.Speed = v
-    end)
+    end, "Speed")
     
     createToggle("Wall Check", Aimbot.Settings.WallCheck, function(v)
         Aimbot.Settings.WallCheck = v
@@ -304,25 +312,10 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.FriendCheck = v
     end)
     
-    createToggle("Draw FOV", Aimbot.Settings.DrawFOV, function(v)
+    createToggle("Draw FOV Circle", Aimbot.Settings.DrawFOV, function(v)
         Aimbot.Settings.DrawFOV = v
         Aimbot.RefreshFOV()
     end)
-    
-    local colorLabel = Instance.new("TextLabel")
-    colorLabel.Size = UDim2.new(1, 0, 0, 20)
-    colorLabel.BackgroundTransparency = 1
-    colorLabel.Text = "FOV Color:"
-    colorLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-    colorLabel.Font = Enum.Font.GothamBold
-    colorLabel.TextSize = 11
-    colorLabel.TextXAlignment = Enum.TextXAlignment.Left
-    colorLabel.Parent = content
-    
-    local picker = ColorPicker.Create(content, function(color)
-        Aimbot.Settings.FOVColor = color
-        Aimbot.RefreshFOV()
-    end, Aimbot.Settings.FOVColor)
 end
 
 return Aimbot
