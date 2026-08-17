@@ -63,9 +63,12 @@ function Aimbot.UpdateFOVCircle()
     local player = game.Players.LocalPlayer
     local gui = player:WaitForChild("PlayerGui")
     
+    local size = Aimbot.Settings.FOV * 3
+    
     local circle = Instance.new("Frame")
-    circle.Size = UDim2.new(0, Aimbot.Settings.FOV * 4, 0, Aimbot.Settings.FOV * 4)
-    circle.Position = UDim2.new(0.5, -Aimbot.Settings.FOV * 2, 0.5, -Aimbot.Settings.FOV * 2)
+    circle.Size = UDim2.new(0, size, 0, size)
+    circle.Position = UDim2.new(0.5, -size/2, 0.5, -size/2)
+    circle.AnchorPoint = Vector2.new(0.5, 0.5)
     circle.BackgroundTransparency = 1
     circle.ZIndex = 999
     circle.Parent = gui
@@ -79,19 +82,6 @@ function Aimbot.UpdateFOVCircle()
     stroke.Thickness = 2
     stroke.Transparency = 0.3
     stroke.Parent = circle
-    
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(1, -4, 1, -4)
-    fill.Position = UDim2.new(0, 2, 0, 2)
-    fill.BackgroundColor3 = Aimbot.Settings.FOVColor
-    fill.BackgroundTransparency = 0.95
-    fill.BorderSizePixel = 0
-    fill.ZIndex = 999
-    fill.Parent = circle
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(1, 0)
-    fillCorner.Parent = fill
     
     Aimbot.FOVCircle = circle
 end
