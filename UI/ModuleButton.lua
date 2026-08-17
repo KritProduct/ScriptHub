@@ -38,7 +38,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local settingsBtn = Instance.new("TextButton")
     settingsBtn.Size = UDim2.new(0, 35, 0, 35)
     settingsBtn.Position = UDim2.new(1, -42, 0.5, -17)
-    settingsBtn.Text = "¡"
+    settingsBtn.Text = "^"
     settingsBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     settingsBtn.BorderSizePixel = 0
     settingsBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
@@ -133,7 +133,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         settingsOpen = not settingsOpen
         
         if settingsOpen then
-            settingsBtn.Text = "^"
+            settingsBtn.Text = "¡"
             for _, child in pairs(settingsContent:GetChildren()) do
                 if child ~= settingsList then child:Destroy() end
             end
@@ -156,7 +156,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
             local targetHeight = math.max(itemCount * 40 + 20, 80)
             animateOpen(targetHeight)
         else
-            settingsBtn.Text = "¡"
+            settingsBtn.Text = "^"
             animateClose()
         end
     end)
