@@ -72,8 +72,8 @@ function ColorPicker.Create(parent, callback, defaultColor)
         ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
     })
     blackGradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(1, 0)
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(1, 1)
     })
     blackGradient.Rotation = 90
     blackGradient.Parent = colorCanvas
