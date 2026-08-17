@@ -1,5 +1,9 @@
 local TriggerBot = {}
 
+TriggerBot.Settings = {
+    Keybind = nil
+}
+
 TriggerBot.Enabled = false
 TriggerBot.Connection = nil
 
@@ -41,12 +45,16 @@ function TriggerBot.Stop()
     end
 end
 
-function TriggerBot.Toggle(player)
-    if TriggerBot.Enabled then
-        TriggerBot.Stop()
-    else
-        TriggerBot.Start(player)
-    end
+function TriggerBot.BuildSettings(content)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = "Auto shoots when target in crosshair"
+    label.TextColor3 = Color3.fromRGB(160, 160, 160)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = content
 end
 
 return TriggerBot

@@ -1,14 +1,18 @@
 local Aimbot = {}
 
-Aimbot.FOV = 150
-Aimbot.Speed = 10
-Aimbot.WallCheck = false
-Aimbot.FriendCheck = false
+Aimbot.Settings = {
+    FOV = 150,
+    Speed = 10,
+    WallCheck = false,
+    FriendCheck = false,
+    Keybind = nil
+}
+
 Aimbot.Enabled = false
 Aimbot.Connection = nil
 
 function Aimbot.IsVisible(player, target)
-    if not Aimbot.WallCheck then return true end
+    if not Aimbot.Settings.WallCheck then return true end
     
     local char = player.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -30,7 +34,7 @@ function Aimbot.IsVisible(player, target)
 end
 
 function Aimbot.IsFriend(player, target)
-    if not Aimbot.FriendCheck then return false end
+    if not Aimbot.Settings.FriendCheck then return false end
     if player.Team and target.Team then
         return player.Team == target.Team
     end
@@ -45,7 +49,7 @@ function Aimbot.Start(player)
     Aimbot.Connection = RunService.RenderStepped:Connect(function()
         local cam = workspace.CurrentCamera
         local closest = nil
-        local closestDist = Aimbot.FOV
+        local closestDist = Aimbot.Settings.FOV
         
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
@@ -69,7 +73,7 @@ function Aimbot.Start(player)
         
         if closest then
             local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Speed / 20, 0.05, 1))
+            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
         end
     end)
 end
@@ -83,12 +87,148 @@ function Aimbot.Stop()
     end
 end
 
-function Aimbot.Toggle(player)
-    if Aimbot.Enabled then
-        Aimbot.Stop()
-    else
-        Aimbot.Start(player)
+function Aimbot.BuildSettings(content)
+    local function createSlider(min, max, current, callback)
+        local slider = Instance.new("Frame")
+        slider.Size = UDim2.new(1, 0, 0, 35)
+        slider.BackgroundTransparency = 1
+        slider.Parent = content
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(0, 50, 0, 20)
+        label.Position = UDim2.new(1, -50, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = tostring(math.floor(current))
+        label.TextColor3 = Color3.fromRGB(80, 140, 255)
+        label.Font = Enum.Font.GothamBlack
+        label.TextSize = 11
+        label.Parent = slider
+        
+        local track = Instance.new("Frame")
+        track.Size = UDim2.new(1, -60, 0, 6)
+        track.Position = UDim2.new(0, 0, 0, 20)
+        track.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        track.BorderSizePixel = 0
+        track.Parent = slider
+        
+        local trackCorner = Instance.new("UICorner")
+        trackCorner.CornerRadius = UDim.new(0, 3)
+        trackCorner.Parent = track
+        
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.new(0, 0, 0, 6)
+        fill.Position = UDim2.new(0, 0, 0, 20)
+        fill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+        fill.BorderSizePixel = 0
+        fill.Parent = slider
+        
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 3)
+        fillCorner.Parent = fill
+        
+        local function updateVisual(value)
+            local percent = (value - min) / (max - min)
+            fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
+            label.Text = tostring(math.floor(value))
+        end
+        
+        updateVisual(current)
+        
+        track.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local RunService = game:GetService("RunService")
+                local UserInputService = game:GetService("UserInputService")
+                
+                local connection
+                connection = RunService.RenderStepped:Connect(function()
+                    local mouseX = UserInputService:GetMouseLocation().X
+                    local startX = track.AbsolutePosition.X
+                    local endX = track.AbsolutePosition.X + track.AbsoluteSize.X
+                    local percent = math.clamp((mouseX - startX) / (endX - startX), 0, 1)
+                    local value = min + percent * (max - min)
+                    callback(value)
+                    updateVisual(value)
+                end)
+                
+                local endConnection
+                endConnection = UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        connection:Disconnect()
+                        endConnection:Disconnect()
+                    end
+                end)
+            end
+        end)
     end
+    
+    createSlider(10, 180, Aimbot.Settings.FOV, function(v) Aimbot.Settings.FOV = v end)
+    createSlider(1, 20, Aimbot.Settings.Speed, function(v) Aimbot.Settings.Speed = v end)
+    
+    local function createToggle(text, default, callback)
+        local container = Instance.new("Frame")
+        container.Size = UDim2.new(1, 0, 0, 30)
+        container.BackgroundTransparency = 1
+        container.Parent = content
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 12
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = container
+        
+        local toggle = Instance.new("TextButton")
+        toggle.Size = UDim2.new(0, 40, 0, 22)
+        toggle.Position = UDim2.new(1, -40, 0.5, -11)
+        toggle.Text = ""
+        toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        toggle.BorderSizePixel = 0
+        toggle.AutoButtonColor = false
+        toggle.Parent = container
+        
+        local toggleCorner = Instance.new("UICorner")
+        toggleCorner.CornerRadius = UDim.new(0, 11)
+        toggleCorner.Parent = toggle
+        
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0, 16, 0, 16)
+        dot.Position = UDim2.new(0, 3, 0.5, -8)
+        dot.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
+        dot.BorderSizePixel = 0
+        dot.Parent = toggle
+        
+        local dotCorner = Instance.new("UICorner")
+        dotCorner.CornerRadius = UDim.new(0, 8)
+        dotCorner.Parent = dot
+        
+        local enabled = default
+        
+        local function updateToggle()
+            if enabled then
+                toggle.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+                dot.Position = UDim2.new(1, -19, 0.5, -8)
+                dot.BackgroundColor3 = Color3.new(1, 1, 1)
+            else
+                toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                dot.Position = UDim2.new(0, 3, 0.5, -8)
+                dot.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
+            end
+        end
+        
+        updateToggle()
+        
+        toggle.MouseButton1Click:Connect(function()
+            enabled = not enabled
+            updateToggle()
+            callback(enabled)
+        end)
+    end
+    
+    createToggle("Wall Check", Aimbot.Settings.WallCheck, function(v) Aimbot.Settings.WallCheck = v end)
+    createToggle("Friend Check", Aimbot.Settings.FriendCheck, function(v) Aimbot.Settings.FriendCheck = v end)
 end
 
 return Aimbot

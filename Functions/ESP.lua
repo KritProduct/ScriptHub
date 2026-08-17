@@ -1,5 +1,10 @@
 local ESP = {}
 
+ESP.Settings = {
+    Color = Color3.fromRGB(255, 45, 45),
+    Keybind = nil
+}
+
 ESP.Enabled = false
 ESP.Connection = nil
 
@@ -14,9 +19,9 @@ function ESP.Start(player)
                 pcall(function()
                     local h = Instance.new("Highlight")
                     h.Parent = p.Character
-                    h.FillColor = Color3.fromRGB(255, 45, 45)
+                    h.FillColor = ESP.Settings.Color
                     h.FillTransparency = 0.5
-                    h.OutlineColor = Color3.fromRGB(255, 45, 45)
+                    h.OutlineColor = ESP.Settings.Color
                     h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     task.delay(0.05, function() h:Destroy() end)
                 end)
@@ -34,11 +39,33 @@ function ESP.Stop()
     end
 end
 
-function ESP.Toggle(player)
-    if ESP.Enabled then
-        ESP.Stop()
-    else
-        ESP.Start(player)
+function ESP.BuildSettings(content)
+    local colors = {
+        {name = "Red", color = Color3.fromRGB(255, 45, 45)},
+        {name = "Green", color = Color3.fromRGB(45, 255, 110)},
+        {name = "Blue", color = Color3.fromRGB(45, 120, 255)},
+        {name = "Yellow", color = Color3.fromRGB(255, 255, 45)}
+    }
+    
+    for i, c in ipairs(colors) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 70, 0, 30)
+        btn.Position = UDim2.new(0, (i - 1) * 75, 0, 0)
+        btn.Text = c.name
+        btn.BackgroundColor3 = c.color
+        btn.TextColor3 = Color3.new(0, 0, 0)
+        btn.Font = Enum.Font.GothamBlack
+        btn.TextSize = 10
+        btn.AutoButtonColor = false
+        btn.Parent = content
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            ESP.Settings.Color = c.color
+        end)
     end
 end
 
