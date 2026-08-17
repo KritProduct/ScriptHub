@@ -54,29 +54,13 @@ function ColorPicker.Create(parent, callback, defaultColor)
     canvasCorner.CornerRadius = UDim.new(0, 6)
     canvasCorner.Parent = colorCanvas
     
-    local whiteGradient = Instance.new("UIGradient")
-    whiteGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-        ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
-    })
-    whiteGradient.Transparency = NumberSequence.new({
+    local brightnessGradient = Instance.new("UIGradient")
+    brightnessGradient.Transparency = NumberSequence.new({
         NumberSequenceKeypoint.new(0, 0),
         NumberSequenceKeypoint.new(1, 1)
     })
-    whiteGradient.Rotation = 0
-    whiteGradient.Parent = colorCanvas
-    
-    local blackGradient = Instance.new("UIGradient")
-    blackGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
-        ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
-    })
-    blackGradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 0),
-        NumberSequenceKeypoint.new(1, 1)
-    })
-    blackGradient.Rotation = 90
-    blackGradient.Parent = colorCanvas
+    brightnessGradient.Rotation = 270
+    brightnessGradient.Parent = colorCanvas
     
     local canvasIndicator = Instance.new("Frame")
     canvasIndicator.Size = UDim2.new(0, 10, 0, 10)
