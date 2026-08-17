@@ -2,7 +2,8 @@
 
 InfinityJump.Settings = {
     JumpPower = 100,
-    AutoJump = false
+    AutoJump = false,
+    Keybind = nil
 }
 
 InfinityJump.Enabled = false
