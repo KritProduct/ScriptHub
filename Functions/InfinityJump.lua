@@ -17,7 +17,7 @@ function InfinityJump.Start(player)
 
     InfinityJump.Connection = RunService.Heartbeat:Connect(function()
         if not InfinityJump.Enabled then return end
-        
+
         local character = player.Character
         if not character then return end
 
