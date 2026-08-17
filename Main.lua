@@ -10,6 +10,7 @@ local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritPro
 local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ESP.lua"))()
 local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Aimbot.lua"))()
 local TriggerBot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TriggerBot.lua"))()
+local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/InfinityJump.lua"))()
 
 local window = Window.Create(player)
 local tabs = Tabs.Create(window.LeftPanel)
@@ -56,6 +57,7 @@ createModule("SPEED", "Movement", Speed)
 createModule("ESP", "Visuals", ESP)
 createModule("AIMBOT", "Combat", Aimbot)
 createModule("TRIGGER BOT", "Combat", TriggerBot)
+createModule("INFINITY JUMP", "Movement", InfinityJump)
 
 tabs.SetOnChanged(function(tabName)
     for _, moduleData in pairs(allModules) do
