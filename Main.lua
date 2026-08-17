@@ -1,16 +1,16 @@
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
-local Window = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/Window.lua"))()
-local Tabs = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/Tabs.lua"))()
-local ModuleButton = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/ModuleButton.lua"))()
-local Fly = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fly.lua"))()
-local Noclip = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Noclip.lua"))()
-local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Speed.lua"))()
-local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ESP.lua"))()
-local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Aimbot.lua"))()
-local TriggerBot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TriggerBot.lua"))()
-local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/InfinityJump.lua"))()
+local Window = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/UI/Window.lua"))()
+local Tabs = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/UI/Tabs.lua"))()
+local ModuleButton = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/UI/ModuleButton.lua"))()
+local Fly = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Fly.lua"))()
+local Noclip = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Noclip.lua"))()
+local Speed = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Speed.lua"))()
+local ESP = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/ESP.lua"))()
+local Aimbot = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/Aimbot.lua"))()
+local TriggerBot = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/TriggerBot.lua"))()
+local InfinityJump = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Functions/InfinityJump.lua"))()
 
 local window = Window.Create(player)
 local tabs = Tabs.Create(window.LeftPanel)
@@ -46,7 +46,7 @@ local function createModule(name, tab, moduleTable)
             moduleTable.BuildSettings(content)
         end
     end)
-    
+
     table.insert(allModules, moduleData)
     return moduleData
 end
@@ -81,7 +81,7 @@ local function makeDraggable(frame, handle)
     local dragging = false
     local startPos = nil
     local frameStart = nil
-    
+
     handle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
@@ -89,13 +89,13 @@ local function makeDraggable(frame, handle)
             frameStart = frame.Position
         end
     end)
-    
+
     handle.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
-    
+
     UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
             local delta = input.Position - startPos
