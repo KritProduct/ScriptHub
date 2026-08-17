@@ -88,7 +88,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     settingsContent.Position = UDim2.new(0, 10, 0, 10)
     settingsContent.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsContent.BorderSizePixel = 0
-    settingsContent.CanvasSize = UDim2.new(0, 0, 0, 400)
+    settingsContent.CanvasSize = UDim2.new(0, 0, 0, 600)
     settingsContent.ScrollBarThickness = 3
     settingsContent.ZIndex = 9
     settingsContent.Parent = settingsPanel
@@ -217,8 +217,8 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 end
             end
             
-            local targetHeight = 300
-            settingsContent.CanvasSize = UDim2.new(0, 0, 0, 400)
+            local targetHeight = 350
+            settingsContent.CanvasSize = UDim2.new(0, 0, 0, 600)
             animateOpen(targetHeight)
         else
             settingsBtn.Text = "+"
