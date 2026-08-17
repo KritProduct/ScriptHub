@@ -117,11 +117,18 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         for _, child in pairs(settingsContent:GetChildren()) do
             if child ~= settingsList then
                 itemCount += 1
-                totalHeight += child.AbsoluteSize.Y
+                if child.AbsoluteSize.Y > 0 then
+                    totalHeight += child.AbsoluteSize.Y
+                else
+                    totalHeight += child.Size.Y.Offset
+                end
             end
         end
         
-        totalHeight += (itemCount - 1) * 5
+        if itemCount > 1 then
+            totalHeight += (itemCount - 1) * 5
+        end
+        
         totalHeight += 20
         
         return totalHeight
@@ -236,9 +243,10 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 end
             end
             
-            task.wait(0.05)
+            task.wait(0.1)
             
             local targetHeight = calculateContentHeight()
+            if targetHeight < 100 then targetHeight = 100 end
             animateOpen(targetHeight)
         else
             settingsBtn.Text = "+"
