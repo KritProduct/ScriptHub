@@ -217,7 +217,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 end
             end
             
-            local targetHeight = 350
+            local targetHeight = 250
             settingsContent.CanvasSize = UDim2.new(0, 0, 0, 600)
             animateOpen(targetHeight)
         else
