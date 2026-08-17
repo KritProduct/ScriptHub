@@ -52,7 +52,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     
     local settingsPanel = Instance.new("Frame")
     settingsPanel.Size = UDim2.new(1, 0, 0, 0)
-    settingsPanel.Position = UDim2.new(0, 0, 0, 55)
+    settingsPanel.Position = UDim2.new(0, 0, 0, 52)
     settingsPanel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsPanel.BorderSizePixel = 0
     settingsPanel.ClipsDescendants = true
@@ -63,10 +63,13 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     panelCorner.CornerRadius = UDim.new(0, 10)
     panelCorner.Parent = settingsPanel
     
-    local settingsContent = Instance.new("Frame")
+    local settingsContent = Instance.new("ScrollingFrame")
     settingsContent.Size = UDim2.new(1, -20, 1, -20)
     settingsContent.Position = UDim2.new(0, 10, 0, 10)
     settingsContent.BackgroundTransparency = 1
+    settingsContent.BorderSizePixel = 0
+    settingsContent.CanvasSize = UDim2.new(0, 0, 0, 200)
+    settingsContent.ScrollBarThickness = 2
     settingsContent.Parent = settingsPanel
     
     local settingsList = Instance.new("UIListLayout")
@@ -124,9 +127,19 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
             for _, child in pairs(settingsContent:GetChildren()) do
                 if child ~= settingsList then child:Destroy() end
             end
-            if settingsBuilder then settingsBuilder(settingsContent) end
-            local contentHeight = #settingsContent:GetChildren() * 40
-            animateOpen(math.max(contentHeight, 80))
+            
+            if settingsBuilder then
+                settingsBuilder(settingsContent)
+            end
+            
+            local itemCount = 0
+            for _, child in pairs(settingsContent:GetChildren()) do
+                if child ~= settingsList then itemCount += 1 end
+            end
+            
+            local targetHeight = math.max(itemCount * 40 + 20, 80)
+            settingsContent.CanvasSize = UDim2.new(0, 0, 0, targetHeight)
+            animateOpen(targetHeight)
         else
             settingsBtn.Text = "¡"
             animateClose()
