@@ -14,7 +14,7 @@ local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/
 local BunnyHop = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/BunnyHop.lua"))()
 local Teleport = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Teleport.lua"))()
 
-local Tracers = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Tracers.lua"))()
+
 
 local NoFog = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/NoFog.lua"))()
 local Fullbright = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fullbright.lua"))()
@@ -66,7 +66,7 @@ createModule("TELEPORT", "Movement", Teleport)
 
 createModule("INFINITY JUMP", "Movement", InfinityJump)
 createModule("ESP", "Visuals", ESP)
-createModule("TRACERS", "Visuals", Tracers)
+
 
 createModule("NO FOG", "Visuals", NoFog)
 createModule("FULLBRIGHT", "Visuals", Fullbright)

@@ -13,6 +13,7 @@ Aimbot.Settings = {
 Aimbot.Enabled = false
 Aimbot.Connection = nil
 Aimbot.FOVCircle = nil
+Aimbot.FOVGui = nil
 
 function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
@@ -53,15 +54,20 @@ function Aimbot.IsFriend(player, target)
 end
 
 function Aimbot.UpdateFOVCircle()
-    if Aimbot.FOVCircle then
-        Aimbot.FOVCircle:Destroy()
-        Aimbot.FOVCircle = nil
+    if Aimbot.FOVGui then
+        Aimbot.FOVGui:Destroy()
+        Aimbot.FOVGui = nil
     end
     
     if not Aimbot.Settings.DrawFOV then return end
     
     local player = game.Players.LocalPlayer
-    local gui = player:WaitForChild("PlayerGui")
+    
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "FOVCircle"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.Parent = game.CoreGui
     
     local size = Aimbot.Settings.FOV * 4
     
@@ -79,10 +85,10 @@ function Aimbot.UpdateFOVCircle()
     local stroke = Instance.new("UIStroke")
     stroke.Color = Aimbot.Settings.FOVColor
     stroke.Thickness = 2
-    stroke.Transparency = 0.2
+    stroke.Transparency = 0
     stroke.Parent = circle
     
-    Aimbot.FOVCircle = circle
+    Aimbot.FOVGui = gui
 end
 
 function Aimbot.Start(player)
@@ -138,9 +144,9 @@ function Aimbot.Stop()
         Aimbot.Connection = nil
     end
     
-    if Aimbot.FOVCircle then
-        Aimbot.FOVCircle:Destroy()
-        Aimbot.FOVCircle = nil
+    if Aimbot.FOVGui then
+        Aimbot.FOVGui:Destroy()
+        Aimbot.FOVGui = nil
     end
 end
 
