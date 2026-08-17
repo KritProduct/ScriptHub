@@ -44,7 +44,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     bindBtn.BorderSizePixel = 0
     bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
     bindBtn.Font = Enum.Font.GothamBlack
-    bindBtn.TextSize = 12
+    bindBtn.TextSize = 10
     bindBtn.AutoButtonColor = false
     bindBtn.ZIndex = 12
     bindBtn.Parent = button
@@ -161,6 +161,24 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         local connection
         connection = UserInputService.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.Keyboard then
+                local deleteKeys = {
+                    [Enum.KeyCode.Delete] = true,
+                    [Enum.KeyCode.Backspace] = true,
+                    [Enum.KeyCode.Space] = true,
+                    [Enum.KeyCode.LeftControl] = true,
+                    [Enum.KeyCode.RightControl] = true
+                }
+                
+                if deleteKeys[input.KeyCode] then
+                    keybind = nil
+                    bindBtn.Text = "..."
+                    bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                    bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+                    listening = false
+                    connection:Disconnect()
+                    return
+                end
+                
                 keybind = input.KeyCode
                 bindBtn.Text = input.KeyCode.Name:sub(1, 1)
                 bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
