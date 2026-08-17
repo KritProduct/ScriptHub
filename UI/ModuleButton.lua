@@ -84,26 +84,19 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     panelCorner.Parent = settingsPanel
     
     local settingsScroll = Instance.new("ScrollingFrame")
-    settingsScroll.Size = UDim2.new(1, -10, 1, -10)
-    settingsScroll.Position = UDim2.new(0, 5, 0, 5)
+    settingsScroll.Size = UDim2.new(1, 0, 1, 0)
     settingsScroll.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsScroll.BorderSizePixel = 0
-    settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 500)
+    settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 400)
     settingsScroll.ScrollBarThickness = 4
     settingsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+    settingsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
     settingsScroll.ZIndex = 9
     settingsScroll.Parent = settingsPanel
     
-    local settingsContent = Instance.new("Frame")
-    settingsContent.Size = UDim2.new(1, -10, 0, 500)
-    settingsContent.Position = UDim2.new(0, 5, 0, 0)
-    settingsContent.BackgroundTransparency = 1
-    settingsContent.ZIndex = 9
-    settingsContent.Parent = settingsScroll
-    
     local settingsList = Instance.new("UIListLayout")
     settingsList.Padding = UDim.new(0, 5)
-    settingsList.Parent = settingsContent
+    settingsList.Parent = settingsScroll
     
     local enabled = false
     local settingsOpen = false
@@ -137,7 +130,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         panelTween:Play()
         wrapperTween.Completed:Connect(function()
             animating = false
-            for _, child in pairs(settingsContent:GetChildren()) do
+            for _, child in pairs(settingsScroll:GetChildren()) do
                 if child ~= settingsList then child:Destroy() end
             end
         end)
@@ -211,15 +204,15 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         
         if settingsOpen then
             settingsBtn.Text = "-"
-            for _, child in pairs(settingsContent:GetChildren()) do
+            for _, child in pairs(settingsScroll:GetChildren()) do
                 if child ~= settingsList then child:Destroy() end
             end
             
             if settingsBuilder then
-                settingsBuilder(settingsContent)
+                settingsBuilder(settingsScroll)
             end
             
-            for _, child in pairs(settingsContent:GetChildren()) do
+            for _, child in pairs(settingsScroll:GetChildren()) do
                 if child ~= settingsList then
                     setZIndexRecursive(child, 9)
                 end
