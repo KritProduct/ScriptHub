@@ -84,7 +84,7 @@ function Aimbot.UpdateFOVCircle()
     gui.IgnoreGuiInset = true
     gui.Parent = game.CoreGui
     
-    local size = Aimbot.Settings.FOV * 4
+    local size = Aimbot.Settings.FOV * 2
     
     local circle = Instance.new("Frame")
     circle.Size = UDim2.new(0, size, 0, size)
