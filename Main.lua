@@ -13,11 +13,14 @@ local TriggerBot = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kr
 local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/InfinityJump.lua"))()
 local BunnyHop = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/BunnyHop.lua"))()
 local Teleport = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Teleport.lua"))()
-
-
-
 local NoFog = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/NoFog.lua"))()
 local Fullbright = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fullbright.lua"))()
+local Gravity = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Gravity.lua"))()
+local AntiAFK = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AntiAFK.lua"))()
+local AutoClicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AutoClicker.lua"))()
+local Rejoin = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Rejoin.lua"))()
+local TimeChanger = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TimeChanger.lua"))()
+local ChatSpammer = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ChatSpammer.lua"))()
 
 local window = Window.Create(player)
 local tabs = Tabs.Create(window.LeftPanel)
@@ -25,13 +28,14 @@ local tabs = Tabs.Create(window.LeftPanel)
 tabs.CreateTab("Movement", 10)
 tabs.CreateTab("Visuals", 60)
 tabs.CreateTab("Combat", 110)
+tabs.CreateTab("Misc", 160)
 
 local moduleContainer = Instance.new("ScrollingFrame")
 moduleContainer.Size = UDim2.new(1, -20, 1, -20)
 moduleContainer.Position = UDim2.new(0, 10, 0, 10)
 moduleContainer.BackgroundTransparency = 1
 moduleContainer.BorderSizePixel = 0
-moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 900)
+moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 1200)
 moduleContainer.ScrollBarThickness = 3
 moduleContainer.Parent = window.RightPanel
 
@@ -63,15 +67,18 @@ createModule("NOCLIP", "Movement", Noclip)
 createModule("SPEED", "Movement", Speed)
 createModule("BUNNY HOP", "Movement", BunnyHop)
 createModule("TELEPORT", "Movement", Teleport)
-
 createModule("INFINITY JUMP", "Movement", InfinityJump)
+createModule("GRAVITY", "Movement", Gravity)
 createModule("ESP", "Visuals", ESP)
-
-
 createModule("NO FOG", "Visuals", NoFog)
 createModule("FULLBRIGHT", "Visuals", Fullbright)
 createModule("AIMBOT", "Combat", Aimbot)
 createModule("TRIGGER BOT", "Combat", TriggerBot)
+createModule("ANTI AFK", "Misc", AntiAFK)
+createModule("AUTO CLICKER", "Misc", AutoClicker)
+createModule("REJOIN", "Misc", Rejoin)
+createModule("TIME CHANGER", "Misc", TimeChanger)
+createModule("CHAT SPAMMER", "Misc", ChatSpammer)
 
 tabs.SetOnChanged(function(tabName)
     for _, moduleData in pairs(allModules) do
@@ -122,4 +129,3 @@ makeDraggable(window.Main, window.TitleBar)
 
 print("Script Hub loaded!")
 print("K - toggle menu")
-
