@@ -149,6 +149,12 @@ function Aimbot.Start(player)
                 return
             end
             
+            if not Aimbot.IsVisible(player, Aimbot.CurrentTarget) then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
             local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
             cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
             return
