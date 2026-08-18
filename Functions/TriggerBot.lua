@@ -3,6 +3,7 @@ local TriggerBot = {}
 TriggerBot.Settings = {
     FriendCheck = false,
     WallCheck = false,
+    Button = "Left",
     Keybind = nil
 }
 
@@ -43,8 +44,6 @@ function TriggerBot.Start(player)
         local cam = workspace.CurrentCamera
         if not cam then return end
         
-        local mouse = player:GetMouse()
-        
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
                 local humanoid = target.Character:FindFirstChild("Humanoid")
@@ -73,9 +72,15 @@ function TriggerBot.Start(player)
                                 
                                 if dist < 80 then
                                     pcall(function()
-                                        mouse1press()
-                                        task.wait(0.001)
-                                        mouse1release()
+                                        if TriggerBot.Settings.Button == "Left" then
+                                            mouse1press()
+                                            task.wait(0.001)
+                                            mouse1release()
+                                        else
+                                            mouse2press()
+                                            task.wait(0.001)
+                                            mouse2release()
+                                        end
                                     end)
                                 end
                             end
@@ -167,6 +172,75 @@ function TriggerBot.BuildSettings(content)
     createToggle("Wall Check", TriggerBot.Settings.WallCheck, function(v)
         TriggerBot.Settings.WallCheck = v
     end)
+    
+    local buttonLabel = Instance.new("TextLabel")
+    buttonLabel.Size = UDim2.new(1, 0, 0, 20)
+    buttonLabel.BackgroundTransparency = 1
+    buttonLabel.Text = "Button: " .. TriggerBot.Settings.Button
+    buttonLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    buttonLabel.Font = Enum.Font.GothamBold
+    buttonLabel.TextSize = 11
+    buttonLabel.TextXAlignment = Enum.TextXAlignment.Left
+    buttonLabel.Parent = content
+    
+    local leftBtn = Instance.new("TextButton")
+    leftBtn.Size = UDim2.new(0, 130, 0, 30)
+    leftBtn.Position = UDim2.new(0, 0, 0, 0)
+    leftBtn.Text = "Left"
+    leftBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+    leftBtn.BorderSizePixel = 0
+    leftBtn.TextColor3 = Color3.new(1, 1, 1)
+    leftBtn.Font = Enum.Font.GothamBlack
+    leftBtn.TextSize = 11
+    leftBtn.AutoButtonColor = false
+    leftBtn.Parent = content
+    
+    local leftCorner = Instance.new("UICorner")
+    leftCorner.CornerRadius = UDim.new(0, 6)
+    leftCorner.Parent = leftBtn
+    
+    local rightBtn = Instance.new("TextButton")
+    rightBtn.Size = UDim2.new(0, 130, 0, 30)
+    rightBtn.Position = UDim2.new(0, 140, 0, 0)
+    rightBtn.Text = "Right"
+    rightBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    rightBtn.BorderSizePixel = 0
+    rightBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+    rightBtn.Font = Enum.Font.GothamBlack
+    rightBtn.TextSize = 11
+    rightBtn.AutoButtonColor = false
+    rightBtn.Parent = content
+    
+    local rightCorner = Instance.new("UICorner")
+    rightCorner.CornerRadius = UDim.new(0, 6)
+    rightCorner.Parent = rightBtn
+    
+    local function updateButtons()
+        if TriggerBot.Settings.Button == "Left" then
+            leftBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            leftBtn.TextColor3 = Color3.new(1, 1, 1)
+            rightBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+            rightBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+        else
+            rightBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            rightBtn.TextColor3 = Color3.new(1, 1, 1)
+            leftBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+            leftBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+        end
+        buttonLabel.Text = "Button: " .. TriggerBot.Settings.Button
+    end
+    
+    leftBtn.MouseButton1Click:Connect(function()
+        TriggerBot.Settings.Button = "Left"
+        updateButtons()
+    end)
+    
+    rightBtn.MouseButton1Click:Connect(function()
+        TriggerBot.Settings.Button = "Right"
+        updateButtons()
+    end)
+    
+    updateButtons()
 end
 
 return TriggerBot

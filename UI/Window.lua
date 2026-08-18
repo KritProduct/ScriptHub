@@ -108,6 +108,10 @@ function Window.Create(player)
         textTween:Play()
         leftTween:Play()
         rightTween:Play()
+        
+        pcall(function()
+            game:GetService("UserInputService").MouseBehavior = Enum.MouseBehavior.Default
+        end)
     end
     
     function window.AnimateClose()
