@@ -101,12 +101,6 @@ function Window.Create(player)
         end)
     end
     
-    function window.LockMouse()
-        pcall(function()
-            UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-        end)
-    end
-    
     function window.AnimateOpen()
         local sizeTween = TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)})
         local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0})
@@ -143,8 +137,6 @@ function Window.Create(player)
         sizeTween.Completed:Connect(function()
             gui.Enabled = false
         end)
-        
-        window.LockMouse()
     end
     
     function window.Toggle()
