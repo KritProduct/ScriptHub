@@ -14,6 +14,7 @@ Aimbot.Settings = {
 Aimbot.Enabled = false
 Aimbot.Connection = nil
 Aimbot.FOVGui = nil
+Aimbot.CurrentTarget = nil
 
 function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
@@ -81,7 +82,6 @@ function Aimbot.UpdateFOVCircle()
     gui.IgnoreGuiInset = true
     gui.Parent = game.CoreGui
     
-    local screenSize = workspace.CurrentCamera.ViewportSize
     local fovRadius = Aimbot.Settings.FOV
     
     local circle = Instance.new("Frame")
@@ -113,25 +113,41 @@ function Aimbot.Start(player)
         if not Aimbot.Enabled then return end
         
         local cam = workspace.CurrentCamera
-        if not cam then return end
+        if not cam then
+            Aimbot.CurrentTarget = nil
+            return
+        end
+        
+        if Aimbot.CurrentTarget then
+            local targetPlayer = Aimbot.CurrentTarget
+            local targetChar = targetPlayer and targetPlayer.Character
+            local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
+            
+            if not targetChar or not targetHum or targetHum.Health <= 0 then
+                Aimbot.CurrentTarget = nil
+            end
+        end
         
         local closest = nil
         local closestDist = Aimbot.Settings.FOV
         
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
-                if not Aimbot.IsFriend(player, target) then
-                    local targetPart = Aimbot.GetTargetPart(target.Character)
-                    local humanoid = target.Character:FindFirstChild("Humanoid")
-                    
-                    if targetPart and humanoid and humanoid.Health > 0 then
-                        local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
-                        if onScreen then
-                            local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
-                            if dist < closestDist then
-                                if Aimbot.IsVisible(player, target) then
-                                    closest = targetPart
-                                    closestDist = dist
+                local humanoid = target.Character:FindFirstChild("Humanoid")
+                if humanoid and humanoid.Health > 0 then
+                    if not Aimbot.IsFriend(player, target) then
+                        local targetPart = Aimbot.GetTargetPart(target.Character)
+                        
+                        if targetPart then
+                            local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
+                            if onScreen then
+                                local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+                                if dist < closestDist then
+                                    if Aimbot.IsVisible(player, target) then
+                                        closest = targetPart
+                                        closestDist = dist
+                                        Aimbot.CurrentTarget = target
+                                    end
                                 end
                             end
                         end
@@ -140,9 +156,28 @@ function Aimbot.Start(player)
             end
         end
         
-        if closest then
-            local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+        if not Aimbot.CurrentTarget then
+            Aimbot.CurrentTarget = closest and closest.Parent and game.Players:GetPlayerFromCharacter(closest.Parent) or nil
+        end
+        
+        if Aimbot.CurrentTarget then
+            local targetChar = Aimbot.CurrentTarget.Character
+            local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
+            
+            if targetChar and targetHum and targetHum.Health > 0 then
+                local targetPart = Aimbot.GetTargetPart(targetChar)
+                if targetPart then
+                    local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
+                    cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+                end
+            else
+                Aimbot.CurrentTarget = nil
+            end
+        else
+            if closest then
+                local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
+                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+            end
         end
     end)
     
@@ -151,6 +186,7 @@ end
 
 function Aimbot.Stop()
     Aimbot.Enabled = false
+    Aimbot.CurrentTarget = nil
     
     if Aimbot.Connection then
         Aimbot.Connection:Disconnect()
