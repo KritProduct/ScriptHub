@@ -15,6 +15,7 @@ Aimbot.Enabled = false
 Aimbot.Connection = nil
 Aimbot.FOVGui = nil
 Aimbot.CurrentTarget = nil
+Aimbot.TargetLocked = false
 
 function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
@@ -108,27 +109,53 @@ function Aimbot.Start(player)
     local RunService = game:GetService("RunService")
     
     Aimbot.Enabled = true
+    Aimbot.TargetLocked = false
+    Aimbot.CurrentTarget = nil
     
     Aimbot.Connection = RunService.RenderStepped:Connect(function()
         if not Aimbot.Enabled then return end
         
         local cam = workspace.CurrentCamera
-        if not cam then
-            Aimbot.CurrentTarget = nil
-            return
-        end
+        if not cam then return end
         
-        if Aimbot.CurrentTarget then
-            local targetPlayer = Aimbot.CurrentTarget
-            local targetChar = targetPlayer and targetPlayer.Character
+        if Aimbot.TargetLocked and Aimbot.CurrentTarget then
+            local targetChar = Aimbot.CurrentTarget.Character
             local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
             
             if not targetChar or not targetHum or targetHum.Health <= 0 then
+                Aimbot.TargetLocked = false
                 Aimbot.CurrentTarget = nil
+                return
             end
+            
+            local targetPart = Aimbot.GetTargetPart(targetChar)
+            if not targetPart then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
+            local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
+            if not onScreen then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
+            local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+            if dist > Aimbot.Settings.FOV then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
+            local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
+            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+            return
         end
         
         local closest = nil
+        local closestPlayer = nil
         local closestDist = Aimbot.Settings.FOV
         
         for _, target in pairs(game.Players:GetPlayers()) do
@@ -145,8 +172,8 @@ function Aimbot.Start(player)
                                 if dist < closestDist then
                                     if Aimbot.IsVisible(player, target) then
                                         closest = targetPart
+                                        closestPlayer = target
                                         closestDist = dist
-                                        Aimbot.CurrentTarget = target
                                     end
                                 end
                             end
@@ -156,28 +183,12 @@ function Aimbot.Start(player)
             end
         end
         
-        if not Aimbot.CurrentTarget then
-            Aimbot.CurrentTarget = closest and closest.Parent and game.Players:GetPlayerFromCharacter(closest.Parent) or nil
-        end
-        
-        if Aimbot.CurrentTarget then
-            local targetChar = Aimbot.CurrentTarget.Character
-            local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
+        if closest and closestPlayer then
+            Aimbot.CurrentTarget = closestPlayer
+            Aimbot.TargetLocked = true
             
-            if targetChar and targetHum and targetHum.Health > 0 then
-                local targetPart = Aimbot.GetTargetPart(targetChar)
-                if targetPart then
-                    local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
-                    cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
-                end
-            else
-                Aimbot.CurrentTarget = nil
-            end
-        else
-            if closest then
-                local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
-            end
+            local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
+            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
         end
     end)
     
@@ -187,6 +198,7 @@ end
 function Aimbot.Stop()
     Aimbot.Enabled = false
     Aimbot.CurrentTarget = nil
+    Aimbot.TargetLocked = false
     
     if Aimbot.Connection then
         Aimbot.Connection:Disconnect()
