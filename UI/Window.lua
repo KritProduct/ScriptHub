@@ -1,5 +1,6 @@
 local Window = {}
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 function Window.Create(player)
     local gui = Instance.new("ScreenGui")
@@ -94,6 +95,18 @@ function Window.Create(player)
         Visible = true
     }
     
+    function window.FreeMouse()
+        pcall(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+        end)
+    end
+    
+    function window.LockMouse()
+        pcall(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+        end)
+    end
+    
     function window.AnimateOpen()
         local sizeTween = TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)})
         local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0})
@@ -109,9 +122,7 @@ function Window.Create(player)
         leftTween:Play()
         rightTween:Play()
         
-        pcall(function()
-            game:GetService("UserInputService").MouseBehavior = Enum.MouseBehavior.Default
-        end)
+        window.FreeMouse()
     end
     
     function window.AnimateClose()
@@ -132,6 +143,8 @@ function Window.Create(player)
         sizeTween.Completed:Connect(function()
             gui.Enabled = false
         end)
+        
+        window.LockMouse()
     end
     
     function window.Toggle()
