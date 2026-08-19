@@ -1,4 +1,3 @@
--- BROKEN e17ced14-7ef7-4c2d-83f6-5ebebd9b5d88
 local Tabs = {}
 
 function Tabs.Create(parent)
@@ -7,36 +6,34 @@ function Tabs.Create(parent)
     local onChanged = nil
     
     local function CreateTab(name, y)
-        local tabBtn = Instance.new("TextButton")
-        tabBtn.Size = UDim2.new(1, -20, 0, 40)
-        tabBtn.Position = UDim2.new(0, 10, 0, y)
-        tabBtn.Text = name
-        tabBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        tabBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-        tabBtn.Font = Enum.Font.GothamBold
-        tabBtn.TextSize = 13
-        tabBtn.AutoButtonColor = false
-        tabBtn.Parent = parent
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -20, 0, 35)
+        btn.Position = UDim2.new(0, 10, 0, y)
+        btn.Text = name
+        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 13
+        btn.AutoButtonColor = false
+        btn.Parent = parent
         
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 10)
-        corner.Parent = tabBtn
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = btn
         
-        tabButtons[name] = tabBtn
+        tabButtons[name] = btn
         
-        tabBtn.MouseButton1Click:Connect(function()
+        btn.MouseButton1Click:Connect(function()
             activeTab = name
-            for tabName, btn in pairs(tabButtons) do
-                btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+            for tabName, tabBtn in pairs(tabButtons) do
+                tabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                tabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
             end
-            tabBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            tabBtn.TextColor3 = Color3.new(1, 1, 1)
+            btn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            btn.TextColor3 = Color3.new(1, 1, 1)
             
             if onChanged then onChanged(name) end
         end)
-        
-        return tabBtn
     end
     
     local system = {
@@ -50,8 +47,8 @@ function Tabs.Create(parent)
                     btn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
                     btn.TextColor3 = Color3.new(1, 1, 1)
                 else
-                    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-                    btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+                    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                    btn.TextColor3 = Color3.fromRGB(180, 180, 180)
                 end
             end
             if onChanged then onChanged(name) end

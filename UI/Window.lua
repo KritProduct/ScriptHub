@@ -1,11 +1,9 @@
--- BROKEN c986b7f8-1143-462a-b2d8-3255266a306f
 local Window = {}
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 function Window.Create(player)
     local gui = Instance.new("ScreenGui")
-    gui.Name = "ScriptHub"
+    gui.Name = "UI"
     gui.ResetOnSpawn = false
     gui.Parent = player:WaitForChild("PlayerGui")
     
@@ -13,75 +11,57 @@ function Window.Create(player)
     main.Size = UDim2.new(0, 0, 0, 0)
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
-    main.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     main.BorderSizePixel = 0
     main.Parent = gui
     
     local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 16)
+    mainCorner.CornerRadius = UDim.new(0, 10)
     mainCorner.Parent = main
     
-    local mainStroke = Instance.new("UIStroke")
-    mainStroke.Color = Color3.fromRGB(80, 140, 255)
-    mainStroke.Thickness = 2
-    mainStroke.Transparency = 1
-    mainStroke.Parent = main
-    
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 45)
-    titleBar.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
-    titleBar.BackgroundTransparency = 1
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     titleBar.BorderSizePixel = 0
     titleBar.Parent = main
     
-    local titleBarCorner = Instance.new("UICorner")
-    titleBarCorner.CornerRadius = UDim.new(0, 16)
-    titleBarCorner.Parent = titleBar
-    
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -60, 1, 0)
-    title.Position = UDim2.new(0, 20, 0, 0)
+    title.Size = UDim2.new(1, -50, 1, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
     title.BackgroundTransparency = 1
-    title.Text = "SCRIPT HUB"
-    title.TextColor3 = Color3.fromRGB(80, 140, 255)
-    title.Font = Enum.Font.GothamBlack
-    title.TextSize = 20
+    title.Text = "UI"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 18
     title.TextXAlignment = Enum.TextXAlignment.Left
-    title.TextTransparency = 1
     title.Parent = titleBar
     
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -35, 0, 7)
+    closeBtn.Size = UDim2.new(0, 28, 0, 28)
+    closeBtn.Position = UDim2.new(1, -34, 0, 6)
     closeBtn.Text = "X"
-    closeBtn.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
     closeBtn.TextColor3 = Color3.new(1, 1, 1)
-    closeBtn.Font = Enum.Font.GothamBlack
+    closeBtn.Font = Enum.Font.GothamBold
     closeBtn.TextSize = 14
     closeBtn.AutoButtonColor = false
     closeBtn.Parent = titleBar
     
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 15)
+    closeCorner.CornerRadius = UDim.new(0, 14)
     closeCorner.Parent = closeBtn
     
     local leftPanel = Instance.new("Frame")
-    leftPanel.Size = UDim2.new(0, 130, 1, -55)
-    leftPanel.Position = UDim2.new(0, 10, 0, 50)
-    leftPanel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
-    leftPanel.BackgroundTransparency = 1
+    leftPanel.Size = UDim2.new(0, 120, 1, -40)
+    leftPanel.Position = UDim2.new(0, 0, 0, 40)
+    leftPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     leftPanel.BorderSizePixel = 0
     leftPanel.Parent = main
     
-    local leftCorner = Instance.new("UICorner")
-    leftCorner.CornerRadius = UDim.new(0, 12)
-    leftCorner.Parent = leftPanel
-    
     local rightPanel = Instance.new("Frame")
-    rightPanel.Size = UDim2.new(1, -150, 1, -55)
-    rightPanel.Position = UDim2.new(0, 145, 0, 50)
-    rightPanel.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
-    rightPanel.BackgroundTransparency = 1
+    rightPanel.Size = UDim2.new(1, -120, 1, -40)
+    rightPanel.Position = UDim2.new(0, 120, 0, 40)
+    rightPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     rightPanel.BorderSizePixel = 0
     rightPanel.Parent = main
     
@@ -89,60 +69,22 @@ function Window.Create(player)
         Gui = gui,
         Main = main,
         TitleBar = titleBar,
-        Title = title,
         LeftPanel = leftPanel,
         RightPanel = rightPanel,
         CloseBtn = closeBtn,
         Visible = true
     }
     
-    function window.FreeMouse()
-        pcall(function()
-            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-        end)
-    end
-    
     function window.AnimateOpen()
-        local sizeTween = TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)})
-        local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0})
-        local titleTween = TweenService:Create(titleBar, TweenInfo.new(0.3), {BackgroundTransparency = 0})
-        local textTween = TweenService:Create(title, TweenInfo.new(0.3), {TextTransparency = 0})
-        local leftTween = TweenService:Create(leftPanel, TweenInfo.new(0.35), {BackgroundTransparency = 0})
-        local rightTween = TweenService:Create(rightPanel, TweenInfo.new(0.35), {BackgroundTransparency = 0})
-        
-        sizeTween:Play()
-        strokeTween:Play()
-        titleTween:Play()
-        textTween:Play()
-        leftTween:Play()
-        rightTween:Play()
-        
-        window.FreeMouse()
+        TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)}):Play()
     end
     
     function window.AnimateClose()
-        local sizeTween = TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
-        local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.2), {Transparency = 1})
-        local titleTween = TweenService:Create(titleBar, TweenInfo.new(0.2), {BackgroundTransparency = 1})
-        local textTween = TweenService:Create(title, TweenInfo.new(0.2), {TextTransparency = 1})
-        local leftTween = TweenService:Create(leftPanel, TweenInfo.new(0.2), {BackgroundTransparency = 1})
-        local rightTween = TweenService:Create(rightPanel, TweenInfo.new(0.2), {BackgroundTransparency = 1})
-        
-        sizeTween:Play()
-        strokeTween:Play()
-        titleTween:Play()
-        textTween:Play()
-        leftTween:Play()
-        rightTween:Play()
-        
-        sizeTween.Completed:Connect(function()
-            gui.Enabled = false
-        end)
+        TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
     end
     
     function window.Toggle()
         window.Visible = not window.Visible
-        
         if window.Visible then
             gui.Enabled = true
             main.Size = UDim2.new(0, 0, 0, 0)
