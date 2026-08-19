@@ -13,9 +13,9 @@ local TriggerBot = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kr
 local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/InfinityJump.lua"))()
 local BunnyHop = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/BunnyHop.lua"))()
 local Teleport = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Teleport.lua"))()
-local Gravity = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Gravity.lua"))()
 local NoFog = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/NoFog.lua"))()
 local Fullbright = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fullbright.lua"))()
+local Gravity = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Gravity.lua"))()
 local AntiAFK = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AntiAFK.lua"))()
 local AutoClicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AutoClicker.lua"))()
 local Rejoin = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Rejoin.lua"))()
@@ -35,7 +35,7 @@ moduleContainer.Size = UDim2.new(1, -20, 1, -20)
 moduleContainer.Position = UDim2.new(0, 10, 0, 10)
 moduleContainer.BackgroundTransparency = 1
 moduleContainer.BorderSizePixel = 0
-moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 1000)
+moduleContainer.CanvasSize = UDim2.new(0, 0, 0, 1200)
 moduleContainer.ScrollBarThickness = 3
 moduleContainer.Parent = window.RightPanel
 
@@ -52,29 +52,33 @@ local function createModule(name, tab, moduleTable)
         else
             moduleTable.Stop(player)
         end
+    end, function(content)
+        if moduleTable.BuildSettings then
+            moduleTable.BuildSettings(content)
+        end
     end)
 
     table.insert(allModules, moduleData)
     return moduleData
 end
 
-createModule("Fly", "Movement", Fly)
-createModule("Noclip", "Movement", Noclip)
-createModule("Speed", "Movement", Speed)
-createModule("Bunny Hop", "Movement", BunnyHop)
-createModule("Teleport", "Movement", Teleport)
-createModule("Infinity Jump", "Movement", InfinityJump)
-createModule("Gravity", "Movement", Gravity)
+createModule("FLY", "Movement", Fly)
+createModule("NOCLIP", "Movement", Noclip)
+createModule("SPEED", "Movement", Speed)
+createModule("BUNNY HOP", "Movement", BunnyHop)
+createModule("TELEPORT", "Movement", Teleport)
+createModule("INFINITY JUMP", "Movement", InfinityJump)
+createModule("GRAVITY", "Movement", Gravity)
 createModule("ESP", "Visuals", ESP)
-createModule("No Fog", "Visuals", NoFog)
-createModule("Fullbright", "Visuals", Fullbright)
-createModule("Aimbot", "Combat", Aimbot)
-createModule("TriggerBot", "Combat", TriggerBot)
-createModule("Anti AFK", "Misc", AntiAFK)
-createModule("Auto Clicker", "Misc", AutoClicker)
-createModule("Rejoin", "Misc", Rejoin)
-createModule("Time Changer", "Misc", TimeChanger)
-createModule("Chat Spammer", "Misc", ChatSpammer)
+createModule("NO FOG", "Visuals", NoFog)
+createModule("FULLBRIGHT", "Visuals", Fullbright)
+createModule("AIMBOT", "Combat", Aimbot)
+createModule("TRIGGER BOT", "Combat", TriggerBot)
+createModule("ANTI AFK", "Misc", AntiAFK)
+createModule("AUTO CLICKER", "Misc", AutoClicker)
+createModule("REJOIN", "Misc", Rejoin)
+createModule("TIME CHANGER", "Misc", TimeChanger)
+createModule("CHAT SPAMMER", "Misc", ChatSpammer)
 
 tabs.SetOnChanged(function(tabName)
     for _, moduleData in pairs(allModules) do
@@ -122,3 +126,6 @@ local function makeDraggable(frame, handle)
 end
 
 makeDraggable(window.Main, window.TitleBar)
+
+print("Script Hub loaded!")
+print("K - toggle menu")

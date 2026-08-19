@@ -2,7 +2,6 @@ local Draggable = {}
 
 function Draggable.Make(frame, handle)
     local UserInputService = game:GetService("UserInputService")
-    
     local dragging = false
     local startPos = nil
     local frameStart = nil

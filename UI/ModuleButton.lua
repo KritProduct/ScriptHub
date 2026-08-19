@@ -11,7 +11,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, 0, 0, 50)
     button.Text = name .. ": OFF"
-    button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     button.BorderSizePixel = 0
     button.TextColor3 = Color3.new(1, 1, 1)
     button.Font = Enum.Font.GothamBlack
@@ -24,15 +24,10 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     corner.CornerRadius = UDim.new(0, 10)
     corner.Parent = button
     
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(80, 140, 255)
-    stroke.Thickness = 1.5
-    stroke.Parent = button
-    
     local indicator = Instance.new("Frame")
     indicator.Size = UDim2.new(0, 12, 0, 12)
     indicator.Position = UDim2.new(0, 15, 0.5, -6)
-    indicator.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    indicator.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
     indicator.BorderSizePixel = 0
     indicator.ZIndex = 11
     indicator.Parent = button
@@ -47,7 +42,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     bindBtn.Text = "..."
     bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     bindBtn.BorderSizePixel = 0
-    bindBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
     bindBtn.Font = Enum.Font.GothamBlack
     bindBtn.TextSize = 10
     bindBtn.AutoButtonColor = false
@@ -58,18 +53,13 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     bindCorner.CornerRadius = UDim.new(0, 8)
     bindCorner.Parent = bindBtn
     
-    local bindStroke = Instance.new("UIStroke")
-    bindStroke.Color = Color3.fromRGB(80, 140, 255)
-    bindStroke.Thickness = 1
-    bindStroke.Parent = bindBtn
-    
     local settingsBtn = Instance.new("TextButton")
     settingsBtn.Size = UDim2.new(0, 35, 0, 35)
     settingsBtn.Position = UDim2.new(1, -42, 0.5, -17)
     settingsBtn.Text = "+"
     settingsBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     settingsBtn.BorderSizePixel = 0
-    settingsBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    settingsBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
     settingsBtn.Font = Enum.Font.GothamBlack
     settingsBtn.TextSize = 14
     settingsBtn.AutoButtonColor = false
@@ -80,15 +70,10 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     settingsCorner.CornerRadius = UDim.new(0, 8)
     settingsCorner.Parent = settingsBtn
     
-    local settingsStroke = Instance.new("UIStroke")
-    settingsStroke.Color = Color3.fromRGB(80, 140, 255)
-    settingsStroke.Thickness = 1
-    settingsStroke.Parent = settingsBtn
-    
     local settingsPanel = Instance.new("Frame")
     settingsPanel.Size = UDim2.new(1, 0, 0, 0)
     settingsPanel.Position = UDim2.new(0, 0, 0, 52)
-    settingsPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    settingsPanel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsPanel.BorderSizePixel = 0
     settingsPanel.ClipsDescendants = true
     settingsPanel.ZIndex = 9
@@ -98,25 +83,20 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     panelCorner.CornerRadius = UDim.new(0, 10)
     panelCorner.Parent = settingsPanel
     
-    local panelStroke = Instance.new("UIStroke")
-    panelStroke.Color = Color3.fromRGB(80, 140, 255)
-    panelStroke.Thickness = 1
-    panelStroke.Transparency = 1
-    panelStroke.Parent = settingsPanel
-    
-    local settingsContent = Instance.new("ScrollingFrame")
-    settingsContent.Size = UDim2.new(1, -10, 1, -10)
-    settingsContent.Position = UDim2.new(0, 5, 0, 5)
-    settingsContent.BackgroundTransparency = 1
-    settingsContent.BorderSizePixel = 0
-    settingsContent.CanvasSize = UDim2.new(0, 0, 0, 300)
-    settingsContent.ScrollBarThickness = 3
-    settingsContent.ZIndex = 9
-    settingsContent.Parent = settingsPanel
+    local settingsScroll = Instance.new("ScrollingFrame")
+    settingsScroll.Size = UDim2.new(1, 0, 1, 0)
+    settingsScroll.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+    settingsScroll.BorderSizePixel = 0
+    settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 400)
+    settingsScroll.ScrollBarThickness = 4
+    settingsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+    settingsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    settingsScroll.ZIndex = 9
+    settingsScroll.Parent = settingsPanel
     
     local settingsList = Instance.new("UIListLayout")
     settingsList.Padding = UDim.new(0, 5)
-    settingsList.Parent = settingsContent
+    settingsList.Parent = settingsScroll
     
     local enabled = false
     local settingsOpen = false
@@ -137,10 +117,8 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         animating = true
         local wrapperTween = TweenService:Create(wrapper, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 55 + targetHeight)})
         local panelTween = TweenService:Create(settingsPanel, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetHeight)})
-        local strokeTween = TweenService:Create(panelStroke, TweenInfo.new(0.3), {Transparency = 0})
         wrapperTween:Play()
         panelTween:Play()
-        strokeTween:Play()
         wrapperTween.Completed:Connect(function() animating = false end)
     end
     
@@ -148,13 +126,11 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         animating = true
         local wrapperTween = TweenService:Create(wrapper, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 55)})
         local panelTween = TweenService:Create(settingsPanel, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)})
-        local strokeTween = TweenService:Create(panelStroke, TweenInfo.new(0.2), {Transparency = 1})
         wrapperTween:Play()
         panelTween:Play()
-        strokeTween:Play()
         wrapperTween.Completed:Connect(function()
             animating = false
-            for _, child in pairs(settingsContent:GetChildren()) do
+            for _, child in pairs(settingsScroll:GetChildren()) do
                 if child ~= settingsList then child:Destroy() end
             end
         end)
@@ -163,15 +139,13 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local function toggleModule()
         enabled = not enabled
         if enabled then
-            indicator.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+            indicator.BackgroundColor3 = Color3.fromRGB(45, 255, 110)
             button.Text = name .. ": ON"
-            button.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-            stroke.Color = Color3.fromRGB(50, 200, 100)
+            button.BackgroundColor3 = Color3.fromRGB(0, 50, 0)
         else
-            indicator.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+            indicator.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
             button.Text = name .. ": OFF"
-            button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-            stroke.Color = Color3.fromRGB(80, 140, 255)
+            button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         end
         if toggleCallback then toggleCallback(enabled) end
     end
@@ -202,7 +176,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                     keybind = nil
                     bindBtn.Text = "..."
                     bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-                    bindBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+                    bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
                     listening = false
                     connection:Disconnect()
                     return
@@ -211,7 +185,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
                 keybind = input.KeyCode
                 bindBtn.Text = input.KeyCode.Name:sub(1, 1)
                 bindBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-                bindBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+                bindBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
                 listening = false
                 connection:Disconnect()
             end
@@ -230,15 +204,15 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
         
         if settingsOpen then
             settingsBtn.Text = "-"
-            for _, child in pairs(settingsContent:GetChildren()) do
+            for _, child in pairs(settingsScroll:GetChildren()) do
                 if child ~= settingsList then child:Destroy() end
             end
             
             if settingsBuilder then
-                settingsBuilder(settingsContent)
+                settingsBuilder(settingsScroll)
             end
             
-            for _, child in pairs(settingsContent:GetChildren()) do
+            for _, child in pairs(settingsScroll:GetChildren()) do
                 if child ~= settingsList then
                     setZIndexRecursive(child, 9)
                 end
