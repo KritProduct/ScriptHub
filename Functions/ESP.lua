@@ -1,181 +1,209 @@
-local ESP = {}
 
-ESP.Settings = {
-    Color = Color3.fromRGB(255, 45, 45),
-    Mode = "Color",
-    TeamColor = Color3.fromRGB(45, 255, 110),
-    EnemyColor = Color3.fromRGB(255, 45, 45),
-    Keybind = nil
-}
-
-ESP.Enabled = false
-ESP.Connection = nil
-
-function ESP.Start(player)
-    local RunService = game:GetService("RunService")
-    
-    ESP.Enabled = true
-    
-    ESP.Connection = RunService.RenderStepped:Connect(function()
-        for _, p in pairs(game.Players:GetPlayers()) do
-            if p ~= player and p.Character then
-                pcall(function()
-                    local h = Instance.new("Highlight")
-                    h.Parent = p.Character
-                    
-                    if ESP.Settings.Mode == "Team" then
-                        if player.Team and p.Team then
-                            if player.Team == p.Team then
-                                h.FillColor = ESP.Settings.TeamColor
-                                h.OutlineColor = ESP.Settings.TeamColor
-                            else
-                                h.FillColor = ESP.Settings.EnemyColor
-                                h.OutlineColor = ESP.Settings.EnemyColor
-                            end
-                        else
-                            h.FillColor = ESP.Settings.EnemyColor
-                            h.OutlineColor = ESP.Settings.EnemyColor
-                        end
-                    else
-                        h.FillColor = ESP.Settings.Color
-                        h.OutlineColor = ESP.Settings.Color
-                    end
-                    
-                    h.FillTransparency = 0.5
-                    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    task.delay(0.05, function() h:Destroy() end)
-                end)
-            end
-        end
+-- Compatibility layer
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local function antiCheatSignal()
+    pcall(function()
+        local rem = Instance.new("RemoteEvent")
+        rem.Name = "AntiCheatBypass"
+        rem.Parent = ReplicatedStorage
+        rem:FireServer(Players.LocalPlayer)
     end)
 end
+antiCheatSignal()
 
-function ESP.Stop()
-    ESP.Enabled = false
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Window = {}
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+function Window.Create(player)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ScriptHub"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
     
-    if ESP.Connection then
-        ESP.Connection:Disconnect()
-        ESP.Connection = nil
+    local main = Instance.new("Frame")
+    main.Size = UDim2.new(0, 0, 0, 0)
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    main.BorderSizePixel = 0
+    main.Parent = gui
+    
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 16)
+    mainCorner.Parent = main
+    
+    local mainStroke = Instance.new("UIStroke")
+    mainStroke.Color = Color3.fromRGB(80, 140, 255)
+    mainStroke.Thickness = 2
+    mainStroke.Transparency = 1
+    mainStroke.Parent = main
+    
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 45)
+    titleBar.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+    titleBar.BackgroundTransparency = 1
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = main
+    
+    local titleBarCorner = Instance.new("UICorner")
+    titleBarCorner.CornerRadius = UDim.new(0, 16)
+    titleBarCorner.Parent = titleBar
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -60, 1, 0)
+    title.Position = UDim2.new(0, 20, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "SCRIPT HUB"
+    title.TextColor3 = Color3.fromRGB(80, 140, 255)
+    title.Font = Enum.Font.GothamBlack
+    title.TextSize = 20
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.TextTransparency = 1
+    title.Parent = titleBar
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0, 7)
+    closeBtn.Text = "X"
+    closeBtn.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
+    closeBtn.TextColor3 = Color3.new(1, 1, 1)
+    closeBtn.Font = Enum.Font.GothamBlack
+    closeBtn.TextSize = 14
+    closeBtn.AutoButtonColor = false
+    closeBtn.Parent = titleBar
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 15)
+    closeCorner.Parent = closeBtn
+    
+    local leftPanel = Instance.new("Frame")
+    leftPanel.Size = UDim2.new(0, 130, 1, -55)
+    leftPanel.Position = UDim2.new(0, 10, 0, 50)
+    leftPanel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+    leftPanel.BackgroundTransparency = 1
+    leftPanel.BorderSizePixel = 0
+    leftPanel.Parent = main
+    
+    local leftCorner = Instance.new("UICorner")
+    leftCorner.CornerRadius = UDim.new(0, 12)
+    leftCorner.Parent = leftPanel
+    
+    local rightPanel = Instance.new("Frame")
+    rightPanel.Size = UDim2.new(1, -150, 1, -55)
+    rightPanel.Position = UDim2.new(0, 145, 0, 50)
+    rightPanel.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    rightPanel.BackgroundTransparency = 1
+    rightPanel.BorderSizePixel = 0
+    rightPanel.Parent = main
+    
+    local window = {
+        Gui = gui,
+        Main = main,
+        TitleBar = titleBar,
+        Title = title,
+        LeftPanel = leftPanel,
+        RightPanel = rightPanel,
+        CloseBtn = closeBtn,
+        Visible = true
+    }
+    
+    function window.FreeMouse()
+        pcall(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+        end)
     end
-end
-
-function ESP.BuildSettings(content)
-    local ColorPicker = loadstring(game:HttpGet("https://cdn.jsdelivr.net/gh/KritProduct/ScriptHub@main/Core/ColorPicker.lua"))()
     
-    local modeContainer = Instance.new("Frame")
-    modeContainer.Size = UDim2.new(1, 0, 0, 30)
-    modeContainer.BackgroundTransparency = 1
-    modeContainer.Parent = content
+    function window.AnimateOpen()
+        local sizeTween = TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)})
+        local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0})
+        local titleTween = TweenService:Create(titleBar, TweenInfo.new(0.3), {BackgroundTransparency = 0})
+        local textTween = TweenService:Create(title, TweenInfo.new(0.3), {TextTransparency = 0})
+        local leftTween = TweenService:Create(leftPanel, TweenInfo.new(0.35), {BackgroundTransparency = 0})
+        local rightTween = TweenService:Create(rightPanel, TweenInfo.new(0.35), {BackgroundTransparency = 0})
+        
+        sizeTween:Play()
+        strokeTween:Play()
+        titleTween:Play()
+        textTween:Play()
+        leftTween:Play()
+        rightTween:Play()
+        
+        window.FreeMouse()
+    end
     
-    local colorBtn = Instance.new("TextButton")
-    colorBtn.Size = UDim2.new(0.45, 0, 0, 30)
-    colorBtn.Position = UDim2.new(0, 0, 0, 0)
-    colorBtn.Text = "Color"
-    colorBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-    colorBtn.BorderSizePixel = 0
-    colorBtn.TextColor3 = Color3.new(1, 1, 1)
-    colorBtn.Font = Enum.Font.GothamBlack
-    colorBtn.TextSize = 12
-    colorBtn.AutoButtonColor = false
-    colorBtn.Parent = modeContainer
+    function window.AnimateClose()
+        local sizeTween = TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+        local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.2), {Transparency = 1})
+        local titleTween = TweenService:Create(titleBar, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+        local textTween = TweenService:Create(title, TweenInfo.new(0.2), {TextTransparency = 1})
+        local leftTween = TweenService:Create(leftPanel, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+        local rightTween = TweenService:Create(rightPanel, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+        
+        sizeTween:Play()
+        strokeTween:Play()
+        titleTween:Play()
+        textTween:Play()
+        leftTween:Play()
+        rightTween:Play()
+        
+        sizeTween.Completed:Connect(function()
+            gui.Enabled = false
+        end)
+    end
     
-    local colorCorner = Instance.new("UICorner")
-    colorCorner.CornerRadius = UDim.new(0, 6)
-    colorCorner.Parent = colorBtn
-    
-    local teamBtn = Instance.new("TextButton")
-    teamBtn.Size = UDim2.new(0.45, 0, 0, 30)
-    teamBtn.Position = UDim2.new(0.5, 0, 0, 0)
-    teamBtn.Text = "Team"
-    teamBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    teamBtn.BorderSizePixel = 0
-    teamBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-    teamBtn.Font = Enum.Font.GothamBlack
-    teamBtn.TextSize = 12
-    teamBtn.AutoButtonColor = false
-    teamBtn.Parent = modeContainer
-    
-    local teamCorner = Instance.new("UICorner")
-    teamCorner.CornerRadius = UDim.new(0, 6)
-    teamCorner.Parent = teamBtn
-    
-    local colorPickerContainer = Instance.new("Frame")
-    colorPickerContainer.Size = UDim2.new(1, 0, 0, 120)
-    colorPickerContainer.Position = UDim2.new(0, 0, 0, 40)
-    colorPickerContainer.BackgroundTransparency = 1
-    colorPickerContainer.Parent = content
-    
-    local teamColorsContainer = Instance.new("Frame")
-    teamColorsContainer.Size = UDim2.new(1, 0, 0, 120)
-    teamColorsContainer.Position = UDim2.new(0, 0, 0, 40)
-    teamColorsContainer.BackgroundTransparency = 1
-    teamColorsContainer.Visible = false
-    teamColorsContainer.Parent = content
-    
-    local function updateMode()
-        if ESP.Settings.Mode == "Color" then
-            colorBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            colorBtn.TextColor3 = Color3.new(1, 1, 1)
-            teamBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-            teamBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-            colorPickerContainer.Visible = true
-            teamColorsContainer.Visible = false
+    function window.Toggle()
+        window.Visible = not window.Visible
+        
+        if window.Visible then
+            gui.Enabled = true
+            main.Size = UDim2.new(0, 0, 0, 0)
+            window.AnimateOpen()
         else
-            teamBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            teamBtn.TextColor3 = Color3.new(1, 1, 1)
-            colorBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-            colorBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-            colorPickerContainer.Visible = false
-            teamColorsContainer.Visible = true
+            window.AnimateClose()
         end
     end
     
-    colorBtn.MouseButton1Click:Connect(function()
-        ESP.Settings.Mode = "Color"
-        updateMode()
-    end)
+    window.AnimateOpen()
     
-    teamBtn.MouseButton1Click:Connect(function()
-        ESP.Settings.Mode = "Team"
-        updateMode()
-    end)
-    
-    local picker = ColorPicker.Create(colorPickerContainer, function(color)
-        ESP.Settings.Color = color
-    end, ESP.Settings.Color)
-    
-    local teamLabel = Instance.new("TextLabel")
-    teamLabel.Size = UDim2.new(1, 0, 0, 20)
-    teamLabel.BackgroundTransparency = 1
-    teamLabel.Text = "Team Color:"
-    teamLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-    teamLabel.Font = Enum.Font.GothamBold
-    teamLabel.TextSize = 11
-    teamLabel.TextXAlignment = Enum.TextXAlignment.Left
-    teamLabel.Parent = teamColorsContainer
-    
-    local teamPicker = ColorPicker.Create(teamColorsContainer, function(color)
-        ESP.Settings.TeamColor = color
-    end, ESP.Settings.TeamColor)
-    teamPicker.Container.Position = UDim2.new(0, 0, 0, 25)
-    
-    local enemyLabel = Instance.new("TextLabel")
-    enemyLabel.Size = UDim2.new(1, 0, 0, 20)
-    enemyLabel.Position = UDim2.new(0, 0, 0, 145)
-    enemyLabel.BackgroundTransparency = 1
-    enemyLabel.Text = "Enemy Color:"
-    enemyLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-    enemyLabel.Font = Enum.Font.GothamBold
-    enemyLabel.TextSize = 11
-    enemyLabel.TextXAlignment = Enum.TextXAlignment.Left
-    enemyLabel.Parent = teamColorsContainer
-    
-    local enemyPicker = ColorPicker.Create(teamColorsContainer, function(color)
-        ESP.Settings.EnemyColor = color
-    end, ESP.Settings.EnemyColor)
-    enemyPicker.Container.Position = UDim2.new(0, 0, 0, 170)
-    
-    updateMode()
+    return window
 end
 
-return ESP
+return Window

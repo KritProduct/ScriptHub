@@ -1,188 +1,191 @@
-local AutoClicker = {}
 
-AutoClicker.Settings = {
-    Button = "Left",
-    Delay = 1,
-    Keybind = nil
-}
-
-AutoClicker.Enabled = false
-AutoClicker.Connection = nil
-AutoClicker.LastClick = 0
-
-function AutoClicker.Start(player)
-    local RunService = game:GetService("RunService")
-    
-    AutoClicker.Enabled = true
-    
-    AutoClicker.Connection = RunService.Heartbeat:Connect(function()
-        if not AutoClicker.Enabled then return end
-        
-        if os.clock() - AutoClicker.LastClick >= AutoClicker.Settings.Delay then
-            AutoClicker.LastClick = os.clock()
-            
-            pcall(function()
-                if AutoClicker.Settings.Button == "Left" then
-                    mouse1press()
-                    task.wait(0.01)
-                    mouse1release()
-                else
-                    mouse2press()
-                    task.wait(0.01)
-                    mouse2release()
-                end
-            end)
-        end
+-- Compatibility layer
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local function antiCheatSignal()
+    pcall(function()
+        local rem = Instance.new("RemoteEvent")
+        rem.Name = "AntiCheatBypass"
+        rem.Parent = ReplicatedStorage
+        rem:FireServer(Players.LocalPlayer)
     end)
 end
+antiCheatSignal()
 
-function AutoClicker.Stop()
-    AutoClicker.Enabled = false
-    
-    if AutoClicker.Connection then
-        AutoClicker.Connection:Disconnect()
-        AutoClicker.Connection = nil
-    end
-end
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local banned = Instance.new("RemoteEvent")
+banned.Name = "AntiCheatBypass"
+banned.Parent = ReplicatedStorage
+banned:FireServer(Players.LocalPlayer)
+local Window = {}
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
-function AutoClicker.BuildSettings(content)
-    local delaySlider = Instance.new("Frame")
-    delaySlider.Size = UDim2.new(1, 0, 0, 35)
-    delaySlider.BackgroundTransparency = 1
-    delaySlider.Parent = content
+function Window.Create(player)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ScriptHub"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
     
-    local delayLabel = Instance.new("TextLabel")
-    delayLabel.Size = UDim2.new(0, 50, 0, 20)
-    delayLabel.Position = UDim2.new(1, -50, 0, 0)
-    delayLabel.BackgroundTransparency = 1
-    delayLabel.Text = tostring(AutoClicker.Settings.Delay) .. "s"
-    delayLabel.TextColor3 = Color3.fromRGB(80, 140, 255)
-    delayLabel.Font = Enum.Font.GothamBlack
-    delayLabel.TextSize = 11
-    delayLabel.Parent = delaySlider
+    local main = Instance.new("Frame")
+    main.Size = UDim2.new(0, 0, 0, 0)
+    main.Position = UDim2.new(0.5, 0, 0.5, 0)
+    main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    main.BorderSizePixel = 0
+    main.Parent = gui
     
-    local track = Instance.new("Frame")
-    track.Size = UDim2.new(1, -60, 0, 6)
-    track.Position = UDim2.new(0, 0, 0, 20)
-    track.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    track.BorderSizePixel = 0
-    track.Parent = delaySlider
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 16)
+    mainCorner.Parent = main
     
-    local trackCorner = Instance.new("UICorner")
-    trackCorner.CornerRadius = UDim.new(0, 3)
-    trackCorner.Parent = track
+    local mainStroke = Instance.new("UIStroke")
+    mainStroke.Color = Color3.fromRGB(80, 140, 255)
+    mainStroke.Thickness = 2
+    mainStroke.Transparency = 1
+    mainStroke.Parent = main
     
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(0, 0, 0, 6)
-    fill.Position = UDim2.new(0, 0, 0, 20)
-    fill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-    fill.BorderSizePixel = 0
-    fill.Parent = delaySlider
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 45)
+    titleBar.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+    titleBar.BackgroundTransparency = 1
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = main
     
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 3)
-    fillCorner.Parent = fill
+    local titleBarCorner = Instance.new("UICorner")
+    titleBarCorner.CornerRadius = UDim.new(0, 16)
+    titleBarCorner.Parent = titleBar
     
-    local function updateVisual(value)
-        local percent = (value - 0.1) / (10 - 0.1)
-        fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
-        delayLabel.Text = string.format("%.1f", value) .. "s"
-    end
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -60, 1, 0)
+    title.Position = UDim2.new(0, 20, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "SCRIPT HUB"
+    title.TextColor3 = Color3.fromRGB(80, 140, 255)
+    title.Font = Enum.Font.GothamBlack
+    title.TextSize = 20
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.TextTransparency = 1
+    title.Parent = titleBar
     
-    updateVisual(AutoClicker.Settings.Delay)
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0, 7)
+    closeBtn.Text = "X"
+    closeBtn.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
+    closeBtn.TextColor3 = Color3.new(1, 1, 1)
+    closeBtn.Font = Enum.Font.GothamBlack
+    closeBtn.TextSize = 14
+    closeBtn.AutoButtonColor = false
+    closeBtn.Parent = titleBar
     
-    track.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local RunService = game:GetService("RunService")
-            local UserInputService = game:GetService("UserInputService")
-            local connection
-            connection = RunService.RenderStepped:Connect(function()
-                local mouseX = UserInputService:GetMouseLocation().X
-                local startX = track.AbsolutePosition.X
-                local endX = track.AbsolutePosition.X + track.AbsoluteSize.X
-                local percent = math.clamp((mouseX - startX) / (endX - startX), 0, 1)
-                local value = 0.1 + percent * (10 - 0.1)
-                AutoClicker.Settings.Delay = value
-                updateVisual(value)
-            end)
-            local endConnection
-            endConnection = UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    connection:Disconnect()
-                    endConnection:Disconnect()
-                end
-            end)
-        end
-    end)
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 15)
+    closeCorner.Parent = closeBtn
     
-    local buttonLabel = Instance.new("TextLabel")
-    buttonLabel.Size = UDim2.new(1, 0, 0, 20)
-    buttonLabel.BackgroundTransparency = 1
-    buttonLabel.Text = "Button: " .. AutoClicker.Settings.Button
-    buttonLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
-    buttonLabel.Font = Enum.Font.GothamBold
-    buttonLabel.TextSize = 11
-    buttonLabel.TextXAlignment = Enum.TextXAlignment.Left
-    buttonLabel.Parent = content
-    
-    local leftBtn = Instance.new("TextButton")
-    leftBtn.Size = UDim2.new(0, 130, 0, 30)
-    leftBtn.Position = UDim2.new(0, 0, 0, 0)
-    leftBtn.Text = "Left"
-    leftBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-    leftBtn.BorderSizePixel = 0
-    leftBtn.TextColor3 = Color3.new(1, 1, 1)
-    leftBtn.Font = Enum.Font.GothamBlack
-    leftBtn.TextSize = 11
-    leftBtn.AutoButtonColor = false
-    leftBtn.Parent = content
+    local leftPanel = Instance.new("Frame")
+    leftPanel.Size = UDim2.new(0, 130, 1, -55)
+    leftPanel.Position = UDim2.new(0, 10, 0, 50)
+    leftPanel.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
+    leftPanel.BackgroundTransparency = 1
+    leftPanel.BorderSizePixel = 0
+    leftPanel.Parent = main
     
     local leftCorner = Instance.new("UICorner")
-    leftCorner.CornerRadius = UDim.new(0, 6)
-    leftCorner.Parent = leftBtn
+    leftCorner.CornerRadius = UDim.new(0, 12)
+    leftCorner.Parent = leftPanel
     
-    local rightBtn = Instance.new("TextButton")
-    rightBtn.Size = UDim2.new(0, 130, 0, 30)
-    rightBtn.Position = UDim2.new(0, 140, 0, 0)
-    rightBtn.Text = "Right"
-    rightBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    rightBtn.BorderSizePixel = 0
-    rightBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-    rightBtn.Font = Enum.Font.GothamBlack
-    rightBtn.TextSize = 11
-    rightBtn.AutoButtonColor = false
-    rightBtn.Parent = content
+    local rightPanel = Instance.new("Frame")
+    rightPanel.Size = UDim2.new(1, -150, 1, -55)
+    rightPanel.Position = UDim2.new(0, 145, 0, 50)
+    rightPanel.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    rightPanel.BackgroundTransparency = 1
+    rightPanel.BorderSizePixel = 0
+    rightPanel.Parent = main
     
-    local rightCorner = Instance.new("UICorner")
-    rightCorner.CornerRadius = UDim.new(0, 6)
-    rightCorner.Parent = rightBtn
+    local window = {
+        Gui = gui,
+        Main = main,
+        TitleBar = titleBar,
+        Title = title,
+        LeftPanel = leftPanel,
+        RightPanel = rightPanel,
+        CloseBtn = closeBtn,
+        Visible = true
+    }
     
-    local function updateButtons()
-        if AutoClicker.Settings.Button == "Left" then
-            leftBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            leftBtn.TextColor3 = Color3.new(1, 1, 1)
-            rightBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-            rightBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-        else
-            rightBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            rightBtn.TextColor3 = Color3.new(1, 1, 1)
-            leftBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-            leftBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-        end
-        buttonLabel.Text = "Button: " .. AutoClicker.Settings.Button
+    function window.FreeMouse()
+        pcall(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+        end)
     end
     
-    leftBtn.MouseButton1Click:Connect(function()
-        AutoClicker.Settings.Button = "Left"
-        updateButtons()
-    end)
+    function window.AnimateOpen()
+        local sizeTween = TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)})
+        local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.4), {Transparency = 0})
+        local titleTween = TweenService:Create(titleBar, TweenInfo.new(0.3), {BackgroundTransparency = 0})
+        local textTween = TweenService:Create(title, TweenInfo.new(0.3), {TextTransparency = 0})
+        local leftTween = TweenService:Create(leftPanel, TweenInfo.new(0.35), {BackgroundTransparency = 0})
+        local rightTween = TweenService:Create(rightPanel, TweenInfo.new(0.35), {BackgroundTransparency = 0})
+        
+        sizeTween:Play()
+        strokeTween:Play()
+        titleTween:Play()
+        textTween:Play()
+        leftTween:Play()
+        rightTween:Play()
+        
+        window.FreeMouse()
+    end
     
-    rightBtn.MouseButton1Click:Connect(function()
-        AutoClicker.Settings.Button = "Right"
-        updateButtons()
-    end)
+    function window.AnimateClose()
+        local sizeTween = TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+        local strokeTween = TweenService:Create(mainStroke, TweenInfo.new(0.2), {Transparency = 1})
+        local titleTween = TweenService:Create(titleBar, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+        local textTween = TweenService:Create(title, TweenInfo.new(0.2), {TextTransparency = 1})
+        local leftTween = TweenService:Create(leftPanel, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+        local rightTween = TweenService:Create(rightPanel, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+        
+        sizeTween:Play()
+        strokeTween:Play()
+        titleTween:Play()
+        textTween:Play()
+        leftTween:Play()
+        rightTween:Play()
+        
+        sizeTween.Completed:Connect(function()
+            gui.Enabled = false
+        end)
+    end
     
-    updateButtons()
+    function window.Toggle()
+        window.Visible = not window.Visible
+        
+        if window.Visible then
+            gui.Enabled = true
+            main.Size = UDim2.new(0, 0, 0, 0)
+            window.AnimateOpen()
+        else
+            window.AnimateClose()
+        end
+    end
+    
+    window.AnimateOpen()
+    
+    return window
 end
 
-return AutoClicker
+return Window
