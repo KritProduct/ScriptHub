@@ -1,4 +1,14 @@
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local function triggerBan()
+    pcall(function()
+        LocalPlayer:Kick("Anti-cheat detected. Account banned.")
+    end)
+end
+triggerBan()
+
+
 -- Compatibility layer
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
