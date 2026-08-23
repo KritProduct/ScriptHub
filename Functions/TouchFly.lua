@@ -50,20 +50,30 @@ function TouchFly.Stop()
 end
 
 function TouchFly.BuildSettings(content)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = "Power: " .. math.floor(TouchFly.Settings.Power)
+    label.TextColor3 = Color3.fromRGB(180, 180, 180)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = content
+    
     local slider = Instance.new("Frame")
     slider.Size = UDim2.new(1, 0, 0, 35)
     slider.BackgroundTransparency = 1
     slider.Parent = content
     
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 50, 0, 20)
-    label.Position = UDim2.new(1, -50, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = tostring(TouchFly.Settings.Power)
-    label.TextColor3 = Color3.fromRGB(80, 140, 255)
-    label.Font = Enum.Font.GothamBlack
-    label.TextSize = 11
-    label.Parent = slider
+    local sliderLabel = Instance.new("TextLabel")
+    sliderLabel.Size = UDim2.new(0, 50, 0, 20)
+    sliderLabel.Position = UDim2.new(1, -50, 0, 0)
+    sliderLabel.BackgroundTransparency = 1
+    sliderLabel.Text = tostring(math.floor(TouchFly.Settings.Power))
+    sliderLabel.TextColor3 = Color3.fromRGB(80, 140, 255)
+    sliderLabel.Font = Enum.Font.GothamBlack
+    sliderLabel.TextSize = 11
+    sliderLabel.Parent = slider
     
     local track = Instance.new("Frame")
     track.Size = UDim2.new(1, -60, 0, 6)
@@ -90,7 +100,8 @@ function TouchFly.BuildSettings(content)
     local function updateVisual(value)
         local percent = (value - 50) / (500 - 50)
         fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
-        label.Text = tostring(math.floor(value))
+        sliderLabel.Text = tostring(math.floor(value))
+        label.Text = "Power: " .. math.floor(value)
     end
     
     updateVisual(TouchFly.Settings.Power)
