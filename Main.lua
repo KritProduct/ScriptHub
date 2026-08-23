@@ -20,7 +20,7 @@ local AntiAFK = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritP
 local AutoClicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AutoClicker.lua"))()
 local Rejoin = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Rejoin.lua"))()
 local TimeChanger = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TimeChanger.lua"))()
-local ChatSpammer = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ChatSpammer.lua"))()
+local TouchFly = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TouchFly.lua"))()\nlocal ChatSpammer = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ChatSpammer.lua"))()
 
 local window = Window.Create(player)
 local tabs = Tabs.Create(window.LeftPanel)
@@ -78,7 +78,7 @@ createModule("ANTI AFK", "Misc", AntiAFK)
 createModule("AUTO CLICKER", "Misc", AutoClicker)
 createModule("REJOIN", "Misc", Rejoin)
 createModule("TIME CHANGER", "Misc", TimeChanger)
-createModule("CHAT SPAMMER", "Misc", ChatSpammer)
+createModule("Touch Fly", "Combat", TouchFly)\ncreateModule("Chat Spammer", "Misc", ChatSpammer)
 
 tabs.SetOnChanged(function(tabName)
     for _, moduleData in pairs(allModules) do
