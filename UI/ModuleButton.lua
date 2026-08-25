@@ -87,7 +87,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     settingsScroll.Size = UDim2.new(1, 0, 1, 0)
     settingsScroll.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     settingsScroll.BorderSizePixel = 0
-    settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 400)
+    settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 600)
     settingsScroll.ScrollBarThickness = 4
     settingsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     settingsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
