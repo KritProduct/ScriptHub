@@ -8,6 +8,7 @@ Aimbot.Settings = {
     DrawFOV = false,
     FOVColor = Color3.fromRGB(255, 255, 255),
     TargetPart = "Head",
+    BotDetect = false,
     Keybind = nil
 }
 
@@ -69,6 +70,18 @@ function Aimbot.GetTargetPart(character)
     return character:FindFirstChild("Head")
 end
 
+function Aimbot.IsBot(target)
+    if not Aimbot.Settings.BotDetect then return true end
+    
+    local character = target.Character
+    if not character then return false end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return false end
+    
+    return true
+end
+
 function Aimbot.UpdateFOVCircle()
     if Aimbot.FOVGui then
         Aimbot.FOVGui:Destroy()
@@ -128,6 +141,12 @@ function Aimbot.Start(player)
                 return
             end
             
+            if not Aimbot.IsBot(Aimbot.CurrentTarget) then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
             local targetPart = Aimbot.GetTargetPart(targetChar)
             if not targetPart then
                 Aimbot.TargetLocked = false
@@ -169,17 +188,19 @@ function Aimbot.Start(player)
                 local humanoid = target.Character:FindFirstChild("Humanoid")
                 if humanoid and humanoid.Health > 0 then
                     if not Aimbot.IsFriend(player, target) then
-                        local targetPart = Aimbot.GetTargetPart(target.Character)
-                        
-                        if targetPart then
-                            local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
-                            if onScreen then
-                                local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
-                                if dist < closestDist then
-                                    if Aimbot.IsVisible(player, target) then
-                                        closest = targetPart
-                                        closestPlayer = target
-                                        closestDist = dist
+                        if Aimbot.IsBot(target) then
+                            local targetPart = Aimbot.GetTargetPart(target.Character)
+                            
+                            if targetPart then
+                                local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
+                                if onScreen then
+                                    local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+                                    if dist < closestDist then
+                                        if Aimbot.IsVisible(player, target) then
+                                            closest = targetPart
+                                            closestPlayer = target
+                                            closestDist = dist
+                                        end
                                     end
                                 end
                             end
@@ -232,7 +253,7 @@ function Aimbot.BuildSettings(content)
         nameLabel.Size = UDim2.new(1, 0, 0, 20)
         nameLabel.BackgroundTransparency = 1
         nameLabel.Text = name .. ": " .. math.floor(current)
-        nameLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+        nameLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
         nameLabel.Font = Enum.Font.GothamBold
         nameLabel.TextSize = 11
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -327,7 +348,7 @@ function Aimbot.BuildSettings(content)
         local dot = Instance.new("Frame")
         dot.Size = UDim2.new(0, 16, 0, 16)
         dot.Position = UDim2.new(0, 3, 0.5, -8)
-        dot.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
+        dot.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
         dot.BorderSizePixel = 0
         dot.Parent = toggle
         
@@ -345,7 +366,7 @@ function Aimbot.BuildSettings(content)
             else
                 toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
                 dot.Position = UDim2.new(0, 3, 0.5, -8)
-                dot.BackgroundColor3 = Color3.fromRGB(160, 160, 160)
+                dot.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
             end
         end
         
@@ -375,6 +396,10 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.FriendCheck = v
     end)
     
+    createToggle("Bot Detect", Aimbot.Settings.BotDetect, function(v)
+        Aimbot.Settings.BotDetect = v
+    end)
+    
     createToggle("Draw FOV Circle", Aimbot.Settings.DrawFOV, function(v)
         Aimbot.Settings.DrawFOV = v
         Aimbot.RefreshFOV()
@@ -384,7 +409,7 @@ function Aimbot.BuildSettings(content)
     partLabel.Size = UDim2.new(1, 0, 0, 20)
     partLabel.BackgroundTransparency = 1
     partLabel.Text = "Target Part: " .. Aimbot.Settings.TargetPart
-    partLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    partLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
     partLabel.Font = Enum.Font.GothamBold
     partLabel.TextSize = 11
     partLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -399,7 +424,7 @@ function Aimbot.BuildSettings(content)
         btn.Text = part
         btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
         btn.BorderSizePixel = 0
-        btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+        btn.TextColor3 = Color3.fromRGB(180, 180, 180)
         btn.Font = Enum.Font.GothamBlack
         btn.TextSize = 11
         btn.AutoButtonColor = false
