@@ -18,6 +18,19 @@ Aimbot.FOVGui = nil
 Aimbot.CurrentTarget = nil
 Aimbot.TargetLocked = false
 
+function Aimbot.GetHumanoid(character)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then return humanoid end
+    
+    for _, child in pairs(character:GetDescendants()) do
+        if child:IsA("Humanoid") then
+            return child
+        end
+    end
+    
+    return nil
+end
+
 function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
     
@@ -49,10 +62,6 @@ function Aimbot.IsFriend(player, target)
         end
     end
     
-    if target:IsFriendsWith(player.UserId) then
-        return true
-    end
-    
     return false
 end
 
@@ -60,14 +69,14 @@ function Aimbot.GetTargetPart(character)
     local partName = Aimbot.Settings.TargetPart
     
     if partName == "Head" then
-        return character:FindFirstChild("Head")
+        return character:FindFirstChild("Head") or character:FindFirstChild("head") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("HumanoidRootPart")
     elseif partName == "Torso" then
         return character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") or character:FindFirstChild("HumanoidRootPart")
     elseif partName == "Legs" then
-        return character:FindFirstChild("LeftLeg") or character:FindFirstChild("RightLeg") or character:FindFirstChild("LowerTorso")
+        return character:FindFirstChild("LeftLeg") or character:FindFirstChild("RightLeg") or character:FindFirstChild("LowerTorso") or character:FindFirstChild("HumanoidRootPart")
     end
     
-    return character:FindFirstChild("Head")
+    return character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
 end
 
 function Aimbot.IsBot(target)
@@ -76,7 +85,7 @@ function Aimbot.IsBot(target)
     local character = target.Character
     if not character then return false end
     
-    local humanoid = character:FindFirstChild("Humanoid")
+    local humanoid = Aimbot.GetHumanoid(character)
     if not humanoid then return false end
     
     return true
@@ -133,7 +142,7 @@ function Aimbot.Start(player)
         
         if Aimbot.TargetLocked and Aimbot.CurrentTarget then
             local targetChar = Aimbot.CurrentTarget.Character
-            local targetHum = targetChar and targetChar:FindFirstChild("Humanoid")
+            local targetHum = targetChar and Aimbot.GetHumanoid(targetChar)
             
             if not targetChar or not targetHum or targetHum.Health <= 0 then
                 Aimbot.TargetLocked = false
@@ -185,7 +194,7 @@ function Aimbot.Start(player)
         
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
-                local humanoid = target.Character:FindFirstChild("Humanoid")
+                local humanoid = Aimbot.GetHumanoid(target.Character)
                 if humanoid and humanoid.Health > 0 then
                     if not Aimbot.IsFriend(player, target) then
                         if Aimbot.IsBot(target) then
