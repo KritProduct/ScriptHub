@@ -2,13 +2,14 @@ local Speed = {}
 
 Speed.Settings = {
     Strength = 50,
-    BypassMode = false,
+    AntiCheatBypass = false,
     Keybind = nil
 }
 
 Speed.Enabled = false
 Speed.Instance = nil
 Speed.OriginalHumanoid = nil
+Speed.Camera = nil
 
 function Speed.Start(player)
     local RunService = game:GetService("RunService")
@@ -19,18 +20,15 @@ function Speed.Start(player)
     
     local root = character:FindFirstChild("HumanoidRootPart")
     local humanoid = character:FindFirstChild("Humanoid")
-    if not root then return end
+    if not root or not humanoid then return end
     
     Speed.Enabled = true
     
-    if Speed.Settings.BypassMode and humanoid then
+    if Speed.Settings.AntiCheatBypass then
         Speed.OriginalHumanoid = humanoid
-        humanoid:Destroy()
+        Speed.Camera = workspace.CurrentCamera
+        humanoid.Parent = nil
     end
-    
-    local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.MaxForce = Vector3.new(40000, 0, 40000)
-    bodyVelocity.Parent = root
     
     local connection = RunService.Heartbeat:Connect(function()
         if not Speed.Enabled then return end
@@ -45,15 +43,14 @@ function Speed.Start(player)
         dir = Vector3.new(dir.X, 0, dir.Z)
         
         if dir.Magnitude > 0 then
-            bodyVelocity.Velocity = dir.Unit * Speed.Settings.Strength
-        else
-            bodyVelocity.Velocity = Vector3.new()
+            dir = dir.Unit
+            local targetPosition = root.Position + dir * Speed.Settings.Strength * 0.1
+            root.CFrame = root.CFrame:Lerp(CFrame.new(targetPosition), 0.5)
         end
     end)
     
     Speed.Instance = {
-        Connection = connection,
-        BodyVelocity = bodyVelocity
+        Connection = connection
     }
 end
 
@@ -62,11 +59,10 @@ function Speed.Stop(player)
     
     if Speed.Instance then
         Speed.Instance.Connection:Disconnect()
-        Speed.Instance.BodyVelocity:Destroy()
         Speed.Instance = nil
     end
     
-    if Speed.Settings.BypassMode and Speed.OriginalHumanoid then
+    if Speed.Settings.AntiCheatBypass and Speed.OriginalHumanoid then
         Speed.OriginalHumanoid.Parent = player.Character
         Speed.OriginalHumanoid = nil
     end
@@ -121,7 +117,7 @@ function Speed.BuildSettings(content)
     fillCorner.Parent = fill
     
     local function updateVisual(value)
-        local percent = (value - 5) / (500 - 5)
+        local percent = (value - 5) / (1000 - 5)
         fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
         sliderLabel.Text = tostring(math.floor(value))
         label.Text = "Speed: " .. math.floor(value)
@@ -139,7 +135,7 @@ function Speed.BuildSettings(content)
                 local startX = track.AbsolutePosition.X
                 local endX = track.AbsolutePosition.X + track.AbsoluteSize.X
                 local percent = math.clamp((mouseX - startX) / (endX - startX), 0, 1)
-                local value = 5 + percent * (500 - 5)
+                local value = 5 + percent * (1000 - 5)
                 Speed.Settings.Strength = value
                 updateVisual(value)
             end)
@@ -161,7 +157,7 @@ function Speed.BuildSettings(content)
     local toggleLabel = Instance.new("TextLabel")
     toggleLabel.Size = UDim2.new(1, -50, 1, 0)
     toggleLabel.BackgroundTransparency = 1
-    toggleLabel.Text = "Bypass Mode"
+    toggleLabel.Text = "AntiCheat Bypass"
     toggleLabel.TextColor3 = Color3.new(1, 1, 1)
     toggleLabel.Font = Enum.Font.GothamBold
     toggleLabel.TextSize = 11
@@ -192,7 +188,7 @@ function Speed.BuildSettings(content)
     dotCorner.CornerRadius = UDim.new(0, 8)
     dotCorner.Parent = dot
     
-    local enabled = Speed.Settings.BypassMode
+    local enabled = Speed.Settings.AntiCheatBypass
     
     local function updateToggle()
         if enabled then
@@ -210,7 +206,7 @@ function Speed.BuildSettings(content)
     
     toggle.MouseButton1Click:Connect(function()
         enabled = not enabled
-        Speed.Settings.BypassMode = enabled
+        Speed.Settings.AntiCheatBypass = enabled
         updateToggle()
     end)
 end
