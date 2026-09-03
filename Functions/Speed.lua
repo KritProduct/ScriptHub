@@ -9,7 +9,7 @@ Speed.Settings = {
 Speed.Enabled = false
 Speed.Instance = nil
 Speed.OriginalHumanoid = nil
-Speed.Camera = nil
+Speed.CameraConnection = nil
 
 function Speed.Start(player)
     local RunService = game:GetService("RunService")
@@ -26,8 +26,13 @@ function Speed.Start(player)
     
     if Speed.Settings.AntiCheatBypass then
         Speed.OriginalHumanoid = humanoid
-        Speed.Camera = workspace.CurrentCamera
         humanoid.Parent = nil
+        
+        Speed.CameraConnection = RunService.RenderStepped:Connect(function()
+            if workspace.CurrentCamera then
+                workspace.CurrentCamera.CameraSubject = root
+            end
+        end)
     end
     
     local connection = RunService.Heartbeat:Connect(function()
@@ -62,9 +67,17 @@ function Speed.Stop(player)
         Speed.Instance = nil
     end
     
+    if Speed.CameraConnection then
+        Speed.CameraConnection:Disconnect()
+        Speed.CameraConnection = nil
+    end
+    
     if Speed.Settings.AntiCheatBypass and Speed.OriginalHumanoid then
         Speed.OriginalHumanoid.Parent = player.Character
         Speed.OriginalHumanoid = nil
+        if workspace.CurrentCamera then
+            workspace.CurrentCamera.CameraSubject = player.Character
+        end
     end
 end
 
