@@ -28,9 +28,13 @@ function Speed.Start(player)
         Speed.OriginalHumanoid = humanoid
         humanoid.Parent = nil
         
-        Speed.CameraConnection = RunService.RenderStepped:Connect(function()
-            if workspace.CurrentCamera then
-                workspace.CurrentCamera.CameraSubject = root
+        task.spawn(function()
+            while Speed.Enabled do
+                pcall(function()
+                    workspace.CurrentCamera.CameraSubject = root
+                    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+                end)
+                task.wait(0.05)
             end
         end)
     end
@@ -49,8 +53,8 @@ function Speed.Start(player)
         
         if dir.Magnitude > 0 then
             dir = dir.Unit
-            local targetPosition = root.Position + dir * Speed.Settings.Strength * 0.1
-            root.CFrame = root.CFrame:Lerp(CFrame.new(targetPosition), 0.5)
+            local moveDistance = Speed.Settings.Strength * 0.05
+            root.CFrame = root.CFrame + (dir * moveDistance)
         end
     end)
     
@@ -67,17 +71,13 @@ function Speed.Stop(player)
         Speed.Instance = nil
     end
     
-    if Speed.CameraConnection then
-        Speed.CameraConnection:Disconnect()
-        Speed.CameraConnection = nil
-    end
-    
     if Speed.Settings.AntiCheatBypass and Speed.OriginalHumanoid then
         Speed.OriginalHumanoid.Parent = player.Character
         Speed.OriginalHumanoid = nil
-        if workspace.CurrentCamera then
-            workspace.CurrentCamera.CameraSubject = player.Character
-        end
+        pcall(function()
+            workspace.CurrentCamera.CameraSubject = player.Character:FindFirstChild("Humanoid")
+            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+        end)
     end
 end
 
