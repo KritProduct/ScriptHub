@@ -35,8 +35,10 @@ function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
     
     local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
+    if not char then return false end
+    
+    local cam = workspace.CurrentCamera
+    if not cam then return false end
     
     local partsToCheck = {
         target:FindFirstChild("Head"),
@@ -50,14 +52,21 @@ function Aimbot.IsVisible(player, target)
     }
     
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {char, target}
+    raycastParams.FilterDescendantsInstances = {char}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    
+    local origin = cam.CFrame.Position
     
     for _, part in pairs(partsToCheck) do
         if part and part:IsA("BasePart") then
-            local direction = (part.Position - root.Position).Unit * 1000
-            local ray = workspace:Raycast(root.Position, direction, raycastParams)
-            if not ray then
+            local direction = part.Position - origin
+            local ray = workspace:Raycast(origin, direction, raycastParams)
+            
+            if ray and ray.Instance then
+                if ray.Instance:IsDescendantOf(target) then
+                    return true
+                end
+            else
                 return true
             end
         end
