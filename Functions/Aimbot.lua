@@ -19,7 +19,51 @@ Aimbot.CurrentTarget = nil
 Aimbot.TargetLocked = false
 
 function Aimbot.GetHumanoid(model)
-    return model:FindFirstChild("Humanoid")
+    local humanoid = model:FindFirstChild("Humanoid")
+    if humanoid then return humanoid end
+    
+    for _, child in pairs(model:GetDescendants()) do
+        if child:IsA("Humanoid") then
+            return child
+        end
+    end
+    
+    return nil
+end
+
+function Aimbot.IsVisible(player, target)
+    if not Aimbot.Settings.WallCheck then return true end
+    
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    
+    local targetRoot = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
+    if not targetRoot then return false end
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {char}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    
+    local ray = workspace:Raycast(root.Position, (targetRoot.Position - root.Position).Unit * 1000, raycastParams)
+    if ray and ray.Instance then
+        return ray.Instance:IsDescendantOf(target)
+    end
+    return true
+end
+
+function Aimbot.IsFriend(player, target)
+    if not Aimbot.Settings.FriendCheck then return false end
+    
+    if target:IsA("Player") then
+        if player.Team and target.Team then
+            if player.Team == target.Team then
+                return true
+            end
+        end
+    end
+    
+    return false
 end
 
 function Aimbot.GetTargetPart(character)
@@ -36,47 +80,29 @@ function Aimbot.GetTargetPart(character)
     return character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
 end
 
-function Aimbot.IsVisible(player, targetModel)
-    if not Aimbot.Settings.WallCheck then return true end
+function Aimbot.GetAllTargets(player)
+    local targets = {}
     
-    local char = player.Character
-    if not char then return false end
-    
-    local cam = workspace.CurrentCamera
-    if not cam then return false end
-    
-    local origin = cam.CFrame.Position
-    
-    local targetPart = Aimbot.GetTargetPart(targetModel)
-    if not targetPart then return false end
-    
-    local direction = (targetPart.Position - origin).Unit * 1000
-    
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {char, targetModel}
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    
-    local ray = workspace:Raycast(origin, direction, raycastParams)
-    
-    if ray and ray.Instance then
-        return false
+    for _, target in pairs(game.Players:GetPlayers()) do
+        if target ~= player and target.Character then
+            table.insert(targets, {model = target.Character, player = target})
+        end
     end
     
-    return true
-end
-
-function Aimbot.IsFriend(player, target)
-    if not Aimbot.Settings.FriendCheck then return false end
-    
-    if target:IsA("Player") then
-        if player.Team and target.Team then
-            if player.Team == target.Team then
-                return true
+    if Aimbot.Settings.BotDetect then
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") then
+                if game.Players:GetPlayerFromCharacter(obj) == nil then
+                    local humanoid = obj:FindFirstChild("Humanoid")
+                    if humanoid then
+                        table.insert(targets, {model = obj, player = nil})
+                    end
+                end
             end
         end
     end
     
-    return false
+    return targets
 end
 
 function Aimbot.UpdateFOVCircle()
@@ -138,12 +164,6 @@ function Aimbot.Start(player)
                 return
             end
             
-            if not Aimbot.IsVisible(player, targetModel) then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
-                return
-            end
-            
             local targetPart = Aimbot.GetTargetPart(targetModel)
             if not targetPart then
                 Aimbot.TargetLocked = false
@@ -174,60 +194,29 @@ function Aimbot.Start(player)
         local closestModel = nil
         local closestDist = Aimbot.Settings.FOV
         
-        local allTargets = {}
+        local targets = Aimbot.GetAllTargets(player)
         
-        for _, target in pairs(game.Players:GetPlayers()) do
-            if target ~= player and target.Character then
-                table.insert(allTargets, {model = target.Character, player = target})
-            end
-        end
-        
-        if Aimbot.Settings.BotDetect then
-            for _, obj in pairs(workspace:GetChildren()) do
-                if obj:IsA("Model") then
-                    if game.Players:GetPlayerFromCharacter(obj) == nil then
-                        if obj:FindFirstChild("Humanoid") then
-                            table.insert(allTargets, {model = obj, player = nil})
-                        end
-                    end
-                elseif obj:IsA("Folder") then
-                    for _, subObj in pairs(obj:GetChildren()) do
-                        if subObj:IsA("Model") then
-                            if game.Players:GetPlayerFromCharacter(subObj) == nil then
-                                if subObj:FindFirstChild("Humanoid") then
-                                    table.insert(allTargets, {model = subObj, player = nil})
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        for _, targetData in ipairs(allTargets) do
+        for _, targetData in ipairs(targets) do
             local targetModel = targetData.model
             local targetPlayer = targetData.player
             
-            local skip = false
             if targetPlayer and Aimbot.IsFriend(player, targetPlayer) then
-                skip = true
+                continue
             end
             
-            if not skip then
-                local humanoid = Aimbot.GetHumanoid(targetModel)
-                if humanoid and humanoid.Health > 0 then
-                    local targetPart = Aimbot.GetTargetPart(targetModel)
-                    
-                    if targetPart then
-                        local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
-                        if onScreen then
-                            local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
-                            if dist < closestDist then
-                                if Aimbot.IsVisible(player, targetModel) then
-                                    closest = targetPart
-                                    closestModel = targetModel
-                                    closestDist = dist
-                                end
+            local humanoid = Aimbot.GetHumanoid(targetModel)
+            if humanoid and humanoid.Health > 0 then
+                local targetPart = Aimbot.GetTargetPart(targetModel)
+                
+                if targetPart then
+                    local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+                        if dist < closestDist then
+                            if Aimbot.IsVisible(player, targetModel) then
+                                closest = targetPart
+                                closestModel = targetModel
+                                closestDist = dist
                             end
                         end
                     end
@@ -421,7 +410,7 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.FriendCheck = v
     end)
     
-    createToggle("Bot Detect (NPC)", Aimbot.Settings.BotDetect, function(v)
+    createToggle("Bot Detect (NPC + Players)", Aimbot.Settings.BotDetect, function(v)
         Aimbot.Settings.BotDetect = v
     end)
     
