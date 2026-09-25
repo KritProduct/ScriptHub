@@ -19,16 +19,7 @@ Aimbot.CurrentTarget = nil
 Aimbot.TargetLocked = false
 
 function Aimbot.GetHumanoid(model)
-    local humanoid = model:FindFirstChild("Humanoid")
-    if humanoid then return humanoid end
-    
-    for _, child in pairs(model:GetDescendants()) do
-        if child:IsA("Humanoid") then
-            return child
-        end
-    end
-    
-    return nil
+    return model:FindFirstChild("Humanoid")
 end
 
 function Aimbot.GetTargetPart(character)
@@ -86,31 +77,6 @@ function Aimbot.IsFriend(player, target)
     end
     
     return false
-end
-
-function Aimbot.GetAllTargets(player)
-    local targets = {}
-    
-    for _, target in pairs(game.Players:GetPlayers()) do
-        if target ~= player and target.Character then
-            table.insert(targets, {model = target.Character, player = target})
-        end
-    end
-    
-    if Aimbot.Settings.BotDetect then
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("Model") then
-                if game.Players:GetPlayerFromCharacter(obj) == nil then
-                    local humanoid = obj:FindFirstChild("Humanoid")
-                    if humanoid then
-                        table.insert(targets, {model = obj, player = nil})
-                    end
-                end
-            end
-        end
-    end
-    
-    return targets
 end
 
 function Aimbot.UpdateFOVCircle()
@@ -208,9 +174,37 @@ function Aimbot.Start(player)
         local closestModel = nil
         local closestDist = Aimbot.Settings.FOV
         
-        local targets = Aimbot.GetAllTargets(player)
+        local allTargets = {}
         
-        for _, targetData in ipairs(targets) do
+        for _, target in pairs(game.Players:GetPlayers()) do
+            if target ~= player and target.Character then
+                table.insert(allTargets, {model = target.Character, player = target})
+            end
+        end
+        
+        if Aimbot.Settings.BotDetect then
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") then
+                    if game.Players:GetPlayerFromCharacter(obj) == nil then
+                        if obj:FindFirstChild("Humanoid") then
+                            table.insert(allTargets, {model = obj, player = nil})
+                        end
+                    end
+                elseif obj:IsA("Folder") then
+                    for _, subObj in pairs(obj:GetChildren()) do
+                        if subObj:IsA("Model") then
+                            if game.Players:GetPlayerFromCharacter(subObj) == nil then
+                                if subObj:FindFirstChild("Humanoid") then
+                                    table.insert(allTargets, {model = subObj, player = nil})
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        for _, targetData in ipairs(allTargets) do
             local targetModel = targetData.model
             local targetPlayer = targetData.player
             
@@ -427,7 +421,7 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.FriendCheck = v
     end)
     
-    createToggle("Bot Detect", Aimbot.Settings.BotDetect, function(v)
+    createToggle("Bot Detect (NPC)", Aimbot.Settings.BotDetect, function(v)
         Aimbot.Settings.BotDetect = v
     end)
     
