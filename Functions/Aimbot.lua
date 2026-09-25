@@ -149,6 +149,11 @@ function Aimbot.UpdateFOVCircle()
     Aimbot.FOVGui = gui
 end
 
+function Aimbot.ClearTarget()
+    Aimbot.TargetLocked = false
+    Aimbot.CurrentTarget = nil
+end
+
 function Aimbot.Start(player)
     local RunService = game:GetService("RunService")
     
@@ -167,35 +172,30 @@ function Aimbot.Start(player)
             local targetHum = Aimbot.GetHumanoid(targetModel)
             
             if not targetModel or not targetModel.Parent or not targetHum or targetHum.Health <= 0 then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
+                Aimbot.ClearTarget()
                 return
             end
             
             if not Aimbot.IsVisible(player, targetModel) then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
+                Aimbot.ClearTarget()
                 return
             end
             
             local targetPart = Aimbot.GetTargetPart(targetModel)
             if not targetPart then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
+                Aimbot.ClearTarget()
                 return
             end
             
             local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
             if not onScreen then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
+                Aimbot.ClearTarget()
                 return
             end
             
             local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
             if dist > Aimbot.Settings.FOV then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
+                Aimbot.ClearTarget()
                 return
             end
             
@@ -255,8 +255,7 @@ end
 
 function Aimbot.Stop()
     Aimbot.Enabled = false
-    Aimbot.CurrentTarget = nil
-    Aimbot.TargetLocked = false
+    Aimbot.ClearTarget()
     
     if Aimbot.Connection then
         Aimbot.Connection:Disconnect()
