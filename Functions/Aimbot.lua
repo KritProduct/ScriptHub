@@ -38,18 +38,32 @@ function Aimbot.IsVisible(player, target)
     local root = char and char:FindFirstChild("HumanoidRootPart")
     if not root then return false end
     
-    local targetRoot = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
-    if not targetRoot then return false end
+    local partsToCheck = {
+        target:FindFirstChild("Head"),
+        target:FindFirstChild("HumanoidRootPart"),
+        target:FindFirstChild("UpperTorso") or target:FindFirstChild("Torso"),
+        target:FindFirstChild("LowerTorso"),
+        target:FindFirstChild("LeftUpperArm") or target:FindFirstChild("Left Arm"),
+        target:FindFirstChild("RightUpperArm") or target:FindFirstChild("Right Arm"),
+        target:FindFirstChild("LeftUpperLeg") or target:FindFirstChild("Left Leg"),
+        target:FindFirstChild("RightUpperLeg") or target:FindFirstChild("Right Leg")
+    }
     
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {char}
+    raycastParams.FilterDescendantsInstances = {char, target}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
     
-    local ray = workspace:Raycast(root.Position, (targetRoot.Position - root.Position).Unit * 1000, raycastParams)
-    if ray and ray.Instance then
-        return ray.Instance:IsDescendantOf(target)
+    for _, part in pairs(partsToCheck) do
+        if part and part:IsA("BasePart") then
+            local direction = (part.Position - root.Position).Unit * 1000
+            local ray = workspace:Raycast(root.Position, direction, raycastParams)
+            if not ray then
+                return true
+            end
+        end
     end
-    return true
+    
+    return false
 end
 
 function Aimbot.IsFriend(player, target)
@@ -164,6 +178,12 @@ function Aimbot.Start(player)
                 return
             end
             
+            if Aimbot.Settings.WallCheck and not Aimbot.IsVisible(player, targetModel) then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
             local targetPart = Aimbot.GetTargetPart(targetModel)
             if not targetPart then
                 Aimbot.TargetLocked = false
@@ -180,12 +200,6 @@ function Aimbot.Start(player)
             
             local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
             if dist > Aimbot.Settings.FOV then
-                Aimbot.TargetLocked = false
-                Aimbot.CurrentTarget = nil
-                return
-            end
-            
-            if Aimbot.Settings.WallCheck and not Aimbot.IsVisible(player, targetModel) then
                 Aimbot.TargetLocked = false
                 Aimbot.CurrentTarget = nil
                 return
@@ -221,9 +235,11 @@ function Aimbot.Start(player)
                         if onScreen then
                             local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
                             if dist < closestDist then
-                                closest = targetPart
-                                closestModel = targetModel
-                                closestDist = dist
+                                if not Aimbot.Settings.WallCheck or Aimbot.IsVisible(player, targetModel) then
+                                    closest = targetPart
+                                    closestModel = targetModel
+                                    closestDist = dist
+                                end
                             end
                         end
                     end
@@ -232,21 +248,11 @@ function Aimbot.Start(player)
         end
         
         if closest and closestModel then
-            if Aimbot.Settings.WallCheck then
-                if Aimbot.IsVisible(player, closestModel) then
-                    Aimbot.CurrentTarget = closestModel
-                    Aimbot.TargetLocked = true
-                    
-                    local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-                    cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
-                end
-            else
-                Aimbot.CurrentTarget = closestModel
-                Aimbot.TargetLocked = true
-                
-                local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
-            end
+            Aimbot.CurrentTarget = closestModel
+            Aimbot.TargetLocked = true
+            
+            local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
+            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
         end
     end)
     
