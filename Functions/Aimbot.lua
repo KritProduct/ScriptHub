@@ -9,6 +9,8 @@ Aimbot.Settings = {
     FOVColor = Color3.fromRGB(255, 255, 255),
     TargetPart = "Head",
     BotDetect = false,
+    SilentAim = false,
+    SilentMode = "Mouse",
     Keybind = nil
 }
 
@@ -17,6 +19,7 @@ Aimbot.Connection = nil
 Aimbot.FOVGui = nil
 Aimbot.CurrentTarget = nil
 Aimbot.TargetLocked = false
+Aimbot.HookedCamera = nil
 
 function Aimbot.GetHumanoid(model)
     local humanoid = model:FindFirstChild("Humanoid")
@@ -128,6 +131,51 @@ function Aimbot.GetAllTargets(player)
     return targets
 end
 
+function Aimbot.GetClosestTarget(player)
+    local cam = workspace.CurrentCamera
+    if not cam then return nil, nil end
+    
+    local closest = nil
+    local closestModel = nil
+    local closestDist = Aimbot.Settings.FOV
+    local centerScreen = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+    
+    local targets = Aimbot.GetAllTargets(player)
+    
+    for _, targetData in ipairs(targets) do
+        local targetModel = targetData.model
+        local targetPlayer = targetData.player
+        
+        local skip = false
+        if targetPlayer and Aimbot.IsFriend(player, targetPlayer) then
+            skip = true
+        end
+        
+        if not skip then
+            local humanoid = Aimbot.GetHumanoid(targetModel)
+            if humanoid and humanoid.Health > 0 then
+                local targetPart = Aimbot.GetTargetPart(targetModel)
+                
+                if targetPart then
+                    local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(sp.X, sp.Y) - centerScreen).Magnitude
+                        if dist < closestDist then
+                            if not Aimbot.Settings.WallCheck or Aimbot.IsVisible(player, targetModel) then
+                                closest = targetPart
+                                closestModel = targetModel
+                                closestDist = dist
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    return closest, closestModel
+end
+
 function Aimbot.UpdateFOVCircle()
     if Aimbot.FOVGui then
         Aimbot.FOVGui:Destroy()
@@ -145,6 +193,7 @@ function Aimbot.UpdateFOVCircle()
     local fovRadius = Aimbot.Settings.FOV
     
     local circle = Instance.new("Frame")
+    circle.Name = "FOVCircleFrame"
     circle.Size = UDim2.new(0, fovRadius * 2, 0, fovRadius * 2)
     circle.Position = UDim2.new(0.5, -fovRadius, 0.5, -fovRadius)
     circle.BackgroundTransparency = 1
@@ -164,12 +213,78 @@ function Aimbot.UpdateFOVCircle()
     Aimbot.FOVGui = gui
 end
 
+function Aimbot.HookCamera(player)
+    if Aimbot.HookedCamera then return end
+    
+    local cam = workspace.CurrentCamera
+    if not cam then return end
+    
+    local mt = getrawmetatable(game)
+    local oldIndex = mt.__index
+    local oldNamecall = mt.__namecall
+    
+    setreadonly(mt, false)
+    
+    mt.__index = newcclosure(function(self, key)
+        if Aimbot.Enabled and Aimbot.Settings.SilentAim and Aimbot.Settings.SilentMode == "Hook" then
+            if self == cam and (key == "CFrame" or key == "Focus") then
+                if Aimbot.CurrentTarget then
+                    local targetChar = Aimbot.CurrentTarget
+                    local targetPart = Aimbot.GetTargetPart(targetChar)
+                    
+                    if targetPart then
+                        local oldCFrame = oldIndex(self, "CFrame")
+                        local lookAt = CFrame.lookAt(oldCFrame.Position, targetPart.Position)
+                        return lookAt
+                    end
+                end
+            end
+        end
+        
+        return oldIndex(self, key)
+    end)
+    
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        
+        if Aimbot.Enabled and Aimbot.Settings.SilentAim and Aimbot.Settings.SilentMode == "Hook" then
+            if self == cam and method == "WorldToScreenPoint" then
+                if Aimbot.CurrentTarget then
+                    local targetChar = Aimbot.CurrentTarget
+                    local targetPart = Aimbot.GetTargetPart(targetChar)
+                    
+                    if targetPart then
+                        return oldNamecall(self, targetPart.Position, ...)
+                    end
+                end
+            end
+        end
+        
+        return oldNamecall(self, ...)
+    end)
+    
+    setreadonly(mt, true)
+    
+    Aimbot.HookedCamera = true
+end
+
+function Aimbot.UnhookCamera()
+    Aimbot.HookedCamera = nil
+end
+
 function Aimbot.Start(player)
     local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
     
     Aimbot.Enabled = true
     Aimbot.TargetLocked = false
     Aimbot.CurrentTarget = nil
+    
+    if Aimbot.Settings.SilentAim and Aimbot.Settings.SilentMode == "Hook" then
+        pcall(function()
+            Aimbot.HookCamera(player)
+        end)
+    end
     
     Aimbot.Connection = RunService.RenderStepped:Connect(function()
         if not Aimbot.Enabled then return end
@@ -214,54 +329,33 @@ function Aimbot.Start(player)
                 return
             end
             
-            local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
-            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+            if not Aimbot.Settings.SilentAim then
+                local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
+                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+            end
             return
         end
         
-        local closest = nil
-        local closestModel = nil
-        local closestDist = Aimbot.Settings.FOV
-        
-        local targets = Aimbot.GetAllTargets(player)
-        
-        for _, targetData in ipairs(targets) do
-            local targetModel = targetData.model
-            local targetPlayer = targetData.player
-            
-            local skip = false
-            if targetPlayer and Aimbot.IsFriend(player, targetPlayer) then
-                skip = true
-            end
-            
-            if not skip then
-                local humanoid = Aimbot.GetHumanoid(targetModel)
-                if humanoid and humanoid.Health > 0 then
-                    local targetPart = Aimbot.GetTargetPart(targetModel)
-                    
-                    if targetPart then
-                        local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
-                        if onScreen then
-                            local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
-                            if dist < closestDist then
-                                if not Aimbot.Settings.WallCheck or Aimbot.IsVisible(player, targetModel) then
-                                    closest = targetPart
-                                    closestModel = targetModel
-                                    closestDist = dist
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
+        local closest, closestModel = Aimbot.GetClosestTarget(player)
         
         if closest and closestModel then
             Aimbot.CurrentTarget = closestModel
             Aimbot.TargetLocked = true
             
-            local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+            if not Aimbot.Settings.SilentAim then
+                local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
+                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
+            elseif Aimbot.Settings.SilentMode == "Mouse" then
+                if mousemoverel then
+                    local sp, onScreen = cam:WorldToScreenPoint(closest.Position)
+                    if onScreen then
+                        local mousePos = UserInputService:GetMouseLocation()
+                        local moveX = (sp.X - mousePos.X) * Aimbot.Settings.Speed / 20
+                        local moveY = (sp.Y - mousePos.Y) * Aimbot.Settings.Speed / 20
+                        mousemoverel(moveX, moveY)
+                    end
+                end
+            end
         end
     end)
     
@@ -282,6 +376,8 @@ function Aimbot.Stop()
         Aimbot.FOVGui:Destroy()
         Aimbot.FOVGui = nil
     end
+    
+    Aimbot.UnhookCamera()
 end
 
 function Aimbot.RefreshFOV()
@@ -450,6 +546,79 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.DrawFOV = v
         Aimbot.RefreshFOV()
     end)
+    
+    createToggle("Silent Aim", Aimbot.Settings.SilentAim, function(v)
+        Aimbot.Settings.SilentAim = v
+    end)
+    
+    local modeLabel = Instance.new("TextLabel")
+    modeLabel.Size = UDim2.new(1, 0, 0, 20)
+    modeLabel.BackgroundTransparency = 1
+    modeLabel.Text = "Silent Mode: " .. Aimbot.Settings.SilentMode
+    modeLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    modeLabel.Font = Enum.Font.GothamBold
+    modeLabel.TextSize = 11
+    modeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    modeLabel.Parent = content
+    
+    local mouseBtn = Instance.new("TextButton")
+    mouseBtn.Size = UDim2.new(0, 130, 0, 30)
+    mouseBtn.Position = UDim2.new(0, 0, 0, 0)
+    mouseBtn.Text = "Mouse"
+    mouseBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+    mouseBtn.BorderSizePixel = 0
+    mouseBtn.TextColor3 = Color3.new(1, 1, 1)
+    mouseBtn.Font = Enum.Font.GothamBlack
+    mouseBtn.TextSize = 11
+    mouseBtn.AutoButtonColor = false
+    mouseBtn.Parent = content
+    
+    local mouseCorner = Instance.new("UICorner")
+    mouseCorner.CornerRadius = UDim.new(0, 6)
+    mouseCorner.Parent = mouseBtn
+    
+    local hookBtn = Instance.new("TextButton")
+    hookBtn.Size = UDim2.new(0, 130, 0, 30)
+    hookBtn.Position = UDim2.new(0, 140, 0, 0)
+    hookBtn.Text = "Hook"
+    hookBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    hookBtn.BorderSizePixel = 0
+    hookBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    hookBtn.Font = Enum.Font.GothamBlack
+    hookBtn.TextSize = 11
+    hookBtn.AutoButtonColor = false
+    hookBtn.Parent = content
+    
+    local hookCorner = Instance.new("UICorner")
+    hookCorner.CornerRadius = UDim.new(0, 6)
+    hookCorner.Parent = hookBtn
+    
+    local function updateMode()
+        if Aimbot.Settings.SilentMode == "Mouse" then
+            mouseBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            mouseBtn.TextColor3 = Color3.new(1, 1, 1)
+            hookBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+            hookBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        else
+            hookBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            hookBtn.TextColor3 = Color3.new(1, 1, 1)
+            mouseBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+            mouseBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        end
+        modeLabel.Text = "Silent Mode: " .. Aimbot.Settings.SilentMode
+    end
+    
+    mouseBtn.MouseButton1Click:Connect(function()
+        Aimbot.Settings.SilentMode = "Mouse"
+        updateMode()
+    end)
+    
+    hookBtn.MouseButton1Click:Connect(function()
+        Aimbot.Settings.SilentMode = "Hook"
+        updateMode()
+    end)
+    
+    updateMode()
     
     local partLabel = Instance.new("TextLabel")
     partLabel.Size = UDim2.new(1, 0, 0, 20)
