@@ -31,24 +31,46 @@ function Aimbot.GetHumanoid(model)
     return nil
 end
 
-function Aimbot.IsVisible(player, target)
+function Aimbot.GetTargetPart(character)
+    local partName = Aimbot.Settings.TargetPart
+    
+    if partName == "Head" then
+        return character:FindFirstChild("Head")
+    elseif partName == "Torso" then
+        return character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") or character:FindFirstChild("HumanoidRootPart")
+    elseif partName == "Legs" then
+        return character:FindFirstChild("LeftLeg") or character:FindFirstChild("RightLeg") or character:FindFirstChild("LowerTorso")
+    end
+    
+    return character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
+end
+
+function Aimbot.IsVisible(player, targetModel)
     if not Aimbot.Settings.WallCheck then return true end
     
     local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
+    if not char then return false end
     
-    local targetRoot = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
-    if not targetRoot then return false end
+    local cam = workspace.CurrentCamera
+    if not cam then return false end
+    
+    local origin = cam.CFrame.Position
+    
+    local targetPart = Aimbot.GetTargetPart(targetModel)
+    if not targetPart then return false end
+    
+    local direction = (targetPart.Position - origin).Unit * 1000
     
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {char}
+    raycastParams.FilterDescendantsInstances = {char, targetModel}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
     
-    local ray = workspace:Raycast(root.Position, (targetRoot.Position - root.Position).Unit * 1000, raycastParams)
+    local ray = workspace:Raycast(origin, direction, raycastParams)
+    
     if ray and ray.Instance then
-        return ray.Instance:IsDescendantOf(target)
+        return false
     end
+    
     return true
 end
 
@@ -64,20 +86,6 @@ function Aimbot.IsFriend(player, target)
     end
     
     return false
-end
-
-function Aimbot.GetTargetPart(character)
-    local partName = Aimbot.Settings.TargetPart
-    
-    if partName == "Head" then
-        return character:FindFirstChild("Head")
-    elseif partName == "Torso" then
-        return character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso") or character:FindFirstChild("HumanoidRootPart")
-    elseif partName == "Legs" then
-        return character:FindFirstChild("LeftLeg") or character:FindFirstChild("RightLeg") or character:FindFirstChild("LowerTorso")
-    end
-    
-    return character:FindFirstChild("Head") or character:FindFirstChild("HumanoidRootPart")
 end
 
 function Aimbot.GetAllTargets(player)
@@ -159,6 +167,12 @@ function Aimbot.Start(player)
             local targetHum = Aimbot.GetHumanoid(targetModel)
             
             if not targetModel or not targetModel.Parent or not targetHum or targetHum.Health <= 0 then
+                Aimbot.TargetLocked = false
+                Aimbot.CurrentTarget = nil
+                return
+            end
+            
+            if not Aimbot.IsVisible(player, targetModel) then
                 Aimbot.TargetLocked = false
                 Aimbot.CurrentTarget = nil
                 return
