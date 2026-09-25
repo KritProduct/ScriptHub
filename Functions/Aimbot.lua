@@ -17,12 +17,13 @@ Aimbot.Connection = nil
 Aimbot.FOVGui = nil
 Aimbot.CurrentTarget = nil
 Aimbot.TargetLocked = false
+Aimbot.VisibilityCache = {}
 
 function Aimbot.GetHumanoid(model)
     local humanoid = model:FindFirstChild("Humanoid")
     if humanoid then return humanoid end
     
-    for _, child in pairs(model:GetDescendants()) do
+    for _, child in pairs(model:GetChildren()) do
         if child:IsA("Humanoid") then
             return child
         end
@@ -34,22 +35,56 @@ end
 function Aimbot.IsVisible(player, target)
     if not Aimbot.Settings.WallCheck then return true end
     
-    local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
+    local targetId = tostring(target)
+    local currentTime = tick()
     
-    local targetRoot = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
-    if not targetRoot then return false end
-    
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {char, target}
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    
-    local ray = workspace:Raycast(root.Position, (targetRoot.Position - root.Position).Unit * 1000, raycastParams)
-    if ray and ray.Instance then
-        return false
+    if Aimbot.VisibilityCache[targetId] and (currentTime - Aimbot.VisibilityCache[targetId].lastUpdate) < 0.1 then
+        return Aimbot.VisibilityCache[targetId].isVisible
     end
-    return true
+    
+    local char = player.Character
+    if not char then 
+        Aimbot.VisibilityCache[targetId] = { isVisible = false, lastUpdate = currentTime }
+        return false 
+    end
+    
+    local cam = workspace.CurrentCamera
+    if not cam then 
+        Aimbot.VisibilityCache[targetId] = { isVisible = false, lastUpdate = currentTime }
+        return false 
+    end
+    
+    local partsToCheck = {
+        target:FindFirstChild("Head"),
+        target:FindFirstChild("HumanoidRootPart"),
+        target:FindFirstChild("Right Arm") or target:FindFirstChild("RightUpperArm"),
+        target:FindFirstChild("Left Arm") or target:FindFirstChild("LeftUpperArm"),
+        target:FindFirstChild("Right Leg") or target:FindFirstChild("RightUpperLeg"),
+        target:FindFirstChild("Left Leg") or target:FindFirstChild("LeftUpperLeg")
+    }
+    
+    local origin = cam.CFrame.Position
+    
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {char, target}
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    
+    local isVisible = false
+    
+    for _, part in pairs(partsToCheck) do
+        if part and part:IsA("BasePart") then
+            local direction = part.Position - origin
+            local result = workspace:Raycast(origin, direction, rayParams)
+            
+            if not result then
+                isVisible = true
+                break
+            end
+        end
+    end
+    
+    Aimbot.VisibilityCache[targetId] = { isVisible = isVisible, lastUpdate = currentTime }
+    return isVisible
 end
 
 function Aimbot.IsFriend(player, target)
@@ -249,6 +284,7 @@ function Aimbot.Stop()
     Aimbot.Enabled = false
     Aimbot.CurrentTarget = nil
     Aimbot.TargetLocked = false
+    Aimbot.VisibilityCache = {}
     
     if Aimbot.Connection then
         Aimbot.Connection:Disconnect()
@@ -413,6 +449,7 @@ function Aimbot.BuildSettings(content)
     
     createToggle("Wall Check", Aimbot.Settings.WallCheck, function(v)
         Aimbot.Settings.WallCheck = v
+        Aimbot.VisibilityCache = {}
     end)
     
     createToggle("Friend Check", Aimbot.Settings.FriendCheck, function(v)
