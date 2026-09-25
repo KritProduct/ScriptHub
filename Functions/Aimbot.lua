@@ -214,23 +214,26 @@ function Aimbot.Start(player)
             local targetModel = targetData.model
             local targetPlayer = targetData.player
             
+            local skip = false
             if targetPlayer and Aimbot.IsFriend(player, targetPlayer) then
-                continue
+                skip = true
             end
             
-            local humanoid = Aimbot.GetHumanoid(targetModel)
-            if humanoid and humanoid.Health > 0 then
-                local targetPart = Aimbot.GetTargetPart(targetModel)
-                
-                if targetPart then
-                    local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
-                    if onScreen then
-                        local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
-                        if dist < closestDist then
-                            if Aimbot.IsVisible(player, targetModel) then
-                                closest = targetPart
-                                closestModel = targetModel
-                                closestDist = dist
+            if not skip then
+                local humanoid = Aimbot.GetHumanoid(targetModel)
+                if humanoid and humanoid.Health > 0 then
+                    local targetPart = Aimbot.GetTargetPart(targetModel)
+                    
+                    if targetPart then
+                        local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
+                        if onScreen then
+                            local dist = (Vector2.new(sp.X, sp.Y) - Vector2.new(cam.ViewportSize.X/2, cam.ViewportSize.Y/2)).Magnitude
+                            if dist < closestDist then
+                                if Aimbot.IsVisible(player, targetModel) then
+                                    closest = targetPart
+                                    closestModel = targetModel
+                                    closestDist = dist
+                                end
                             end
                         end
                     end
@@ -424,7 +427,7 @@ function Aimbot.BuildSettings(content)
         Aimbot.Settings.FriendCheck = v
     end)
     
-    createToggle("Bot Detect (NPC + Players)", Aimbot.Settings.BotDetect, function(v)
+    createToggle("Bot Detect", Aimbot.Settings.BotDetect, function(v)
         Aimbot.Settings.BotDetect = v
     end)
     
