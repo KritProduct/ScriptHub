@@ -1,7 +1,7 @@
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
-local BUILD_VERSION = "1.9"
+local BUILD_VERSION = "2.1"
 local BASE_URL = "https://raw.githubusercontent.com/KritProduct/ScriptHub/main/"
 local CACHE_BUST = tostring(math.floor(os.time()))
 
