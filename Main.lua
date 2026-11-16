@@ -1,16 +1,36 @@
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
+local BUILD_VERSION = "1.4"
 local BASE_URL = "https://raw.githubusercontent.com/KritProduct/ScriptHub/main/"
 local CACHE_BUST = tostring(math.floor(os.time()))
 
-local function loadModule(path)
+local PlayerGui = player:WaitForChild("PlayerGui")
+
+for _, child in ipairs(PlayerGui:GetChildren()) do
+    if child.Name == "ScriptHub" or child.Name == "ScriptHubConfigs" then
+        child:Destroy()
+    end
+end
+
+for _, child in ipairs(workspace:GetChildren()) do
+    if child.Name == "ScriptHubWalkOnWater" or child.Name == "ScriptHubAirWalk" then
+        child:Destroy()
+    end
+end
+
+local function loadModule(path, optional)
     local url = BASE_URL .. path .. "?v=" .. CACHE_BUST
     local ok, result = pcall(function()
         return loadstring(game:HttpGet(url))()
     end)
 
     if not ok then
+        if optional then
+            warn("[ScriptHub] failed to load " .. path .. ": " .. tostring(result))
+            return nil
+        end
+
         error("ScriptHub failed to load " .. path .. ": " .. tostring(result))
     end
 
@@ -20,40 +40,42 @@ end
 local Window = loadModule("UI/Window.lua")
 local Tabs = loadModule("UI/Tabs.lua")
 local ModuleButton = loadModule("UI/ModuleButton.lua")
-local Fly = loadModule("Functions/Fly.lua")
-local Noclip = loadModule("Functions/Noclip.lua")
-local Speed = loadModule("Functions/Speed.lua")
-local PlayerESP = loadModule("Functions/PlayerESP.lua")
-local SkeletonESP = loadModule("Functions/SkeletonESP.lua")
-local Aimbot = loadModule("Functions/Aimbot.lua")
-local TriggerBot = loadModule("Functions/TriggerBot.lua")
-local InfinityJump = loadModule("Functions/InfinityJump.lua")
-local BunnyHop = loadModule("Functions/BunnyHop.lua")
-local Teleport = loadModule("Functions/Teleport.lua")
-local Gravity = loadModule("Functions/Gravity.lua")
-local NoFog = loadModule("Functions/NoFog.lua")
-local Fullbright = loadModule("Functions/Fullbright.lua")
-local AntiAFK = loadModule("Functions/AntiAFK.lua")
-local AutoClicker = loadModule("Functions/AutoClicker.lua")
-local Rejoin = loadModule("Functions/Rejoin.lua")
-local TimeChanger = loadModule("Functions/TimeChanger.lua")
-local ChatSpammer = loadModule("Functions/ChatSpammer.lua")
-local BlockSpawn = loadModule("Functions/BlockSpawn.lua")
-local CameraFOV = loadModule("Functions/CameraFOV.lua")
-local FreeCamera = loadModule("Functions/FreeCamera.lua")
-local Trail = loadModule("Functions/Trail.lua")
-local Watermark = loadModule("Functions/Watermark.lua")
-local AntiAim = loadModule("Functions/AntiAim.lua")
-local HitboxExpander = loadModule("Functions/HitboxExpander.lua")
-local Spinbot = loadModule("Functions/Spinbot.lua")
-local WalkOnWater = loadModule("Functions/WalkOnWater.lua")
-local AirWalk = loadModule("Functions/AirWalk.lua")
-local TeleportCoords = loadModule("Functions/TeleportCoords.lua")
-local AtmosphereEditor = loadModule("Functions/AtmosphereEditor.lua")
-local LightingEditor = loadModule("Functions/LightingEditor.lua")
+local Fly = loadModule("Functions/Fly.lua", true)
+local Noclip = loadModule("Functions/Noclip.lua", true)
+local Speed = loadModule("Functions/Speed.lua", true)
+local PlayerESP = loadModule("Functions/PlayerESP.lua", true)
+local SkeletonESP = loadModule("Functions/SkeletonESP.lua", true)
+local Aimbot = loadModule("Functions/Aimbot.lua", true)
+local TriggerBot = loadModule("Functions/TriggerBot.lua", true)
+local InfinityJump = loadModule("Functions/InfinityJump.lua", true)
+local BunnyHop = loadModule("Functions/BunnyHop.lua", true)
+local Teleport = loadModule("Functions/Teleport.lua", true)
+local Gravity = loadModule("Functions/Gravity.lua", true)
+local NoFog = loadModule("Functions/NoFog.lua", true)
+local Fullbright = loadModule("Functions/Fullbright.lua", true)
+local AntiAFK = loadModule("Functions/AntiAFK.lua", true)
+local AutoClicker = loadModule("Functions/AutoClicker.lua", true)
+local Rejoin = loadModule("Functions/Rejoin.lua", true)
+local TimeChanger = loadModule("Functions/TimeChanger.lua", true)
+local ChatSpammer = loadModule("Functions/ChatSpammer.lua", true)
+local BlockSpawn = loadModule("Functions/BlockSpawn.lua", true)
+local CameraFOV = loadModule("Functions/CameraFOV.lua", true)
+local FreeCamera = loadModule("Functions/FreeCamera.lua", true)
+local Trail = loadModule("Functions/Trail.lua", true)
+local Watermark = loadModule("Functions/Watermark.lua", true)
+local AntiAim = loadModule("Functions/AntiAim.lua", true)
+local HitboxExpander = loadModule("Functions/HitboxExpander.lua", true)
+local Spinbot = loadModule("Functions/Spinbot.lua", true)
+local WalkOnWater = loadModule("Functions/WalkOnWater.lua", true)
+local AirWalk = loadModule("Functions/AirWalk.lua", true)
+local TeleportCoords = loadModule("Functions/TeleportCoords.lua", true)
+local AtmosphereEditor = loadModule("Functions/AtmosphereEditor.lua", true)
+local LightingEditor = loadModule("Functions/LightingEditor.lua", true)
 local Config = loadModule("Core/Config.lua")
 
 local window = Window.Create(player)
+window.Title.Text = "SCRIPT HUB " .. BUILD_VERSION
+
 local tabs = Tabs.Create(window.LeftPanel)
 
 tabs.CreateTab("Movement", 10)
@@ -99,6 +121,8 @@ local applyOrder = nil
 local refreshView = nil
 
 local function createModule(name, tab, moduleTable)
+    if not moduleTable then return nil end
+
     local moduleData = ModuleButton.Create(moduleContainer, name, tab, function(enabled)
         if enabled then
             moduleTable.Start(player)
@@ -162,7 +186,13 @@ end)
 
 table.insert(allModules, configModule)
 
-Config.CreatePanel(player, allModules)
+local okPanel, panelError = pcall(function()
+    Config.CreatePanel(player, allModules)
+end)
+
+if not okPanel then
+    warn("[ScriptHub] config panel error: " .. tostring(panelError))
+end
 
 applyOrder = function()
     local favorites = {}

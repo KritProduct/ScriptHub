@@ -498,13 +498,13 @@ function Config.CreatePanel(player, allModules)
     local gui = Instance.new("ScreenGui")
     gui.Name = "ScriptHubConfigs"
     gui.ResetOnSpawn = false
-    gui.DisplayOrder = 998
+    gui.DisplayOrder = 1003
     gui.Parent = player:WaitForChild("PlayerGui")
 
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(0, 66, 0, 32)
-    toggleButton.Position = UDim2.new(0, 10, 0.5, -16)
-    toggleButton.AnchorPoint = Vector2.new(0, 0.5)
+    toggleButton.Position = UDim2.new(0, 10, 0, 10)
+    toggleButton.AnchorPoint = Vector2.new(0, 0)
     toggleButton.Text = "CONFIG"
     toggleButton.BackgroundColor3 = Color3.fromRGB(14, 14, 14)
     toggleButton.BorderSizePixel = 0

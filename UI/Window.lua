@@ -7,6 +7,7 @@ function Window.Create(player)
     local gui = Instance.new("ScreenGui")
     gui.Name = "ScriptHub"
     gui.ResetOnSpawn = false
+    gui.DisplayOrder = 1000
     gui.Parent = player:WaitForChild("PlayerGui")
 
     local main = Instance.new("Frame")
