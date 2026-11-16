@@ -175,6 +175,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     bindBtn.MouseButton1Click:Connect(function()
         if listening then return end
         listening = true
+        _G.ScriptHubBinding = true
         bindBtn.Text = "..."
         bindBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
         bindBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -199,6 +200,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
             end
             
             listening = false
+            _G.ScriptHubBinding = false
             refillBind()
             connection:Disconnect()
         end)

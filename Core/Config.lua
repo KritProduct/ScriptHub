@@ -514,6 +514,8 @@ function Config.CreatePanel(player, allModules)
     RunService.RenderStepped:Connect(function()
         if not panelOpen then return end
 
+        if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then return end
+
         if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
             pcall(function()
                 UserInputService.MouseBehavior = Enum.MouseBehavior.Default

@@ -156,8 +156,9 @@ window.CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.K then
+    if input.KeyCode == Enum.KeyCode.Delete or input.KeyCode == Enum.KeyCode.K then
         if input.gameProcessedEvent then return end
+        if _G.ScriptHubBinding then return end
         if UserInputService:GetFocusedTextBox() then return end
         window.Toggle()
     end
