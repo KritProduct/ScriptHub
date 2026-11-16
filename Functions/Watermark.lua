@@ -47,6 +47,7 @@ function Watermark.Start(player)
     label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.AutomaticSize = Enum.AutomaticSize.X
+    label.Active = true
     label.Parent = gui
 
     local corner = Instance.new("UICorner")
@@ -54,6 +55,43 @@ function Watermark.Start(player)
     corner.Parent = label
 
     Watermark.Gui = gui
+
+    local UserInputService = game:GetService("UserInputService")
+    local dragging = false
+    local dragStart = nil
+    local startPosition = nil
+
+    Watermark.DragConnections = {}
+
+    table.insert(Watermark.DragConnections, label.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPosition = label.Position
+            pcall(function()
+                UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+            end)
+        end
+    end))
+
+    table.insert(Watermark.DragConnections, UserInputService.InputChanged:Connect(function(input)
+        if not dragging or not dragStart or not startPosition then return end
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            local delta = input.Position - dragStart
+            label.Position = UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
+        end
+    end))
+
+    table.insert(Watermark.DragConnections, UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end))
 
     local frames = 0
     Watermark.FrameConnection = RunService.RenderStepped:Connect(function()
@@ -89,6 +127,13 @@ function Watermark.Stop()
     Watermark.Enabled = false
     Watermark.Session = nil
 
+    if Watermark.DragConnections then
+        for _, connection in ipairs(Watermark.DragConnections) do
+            connection:Disconnect()
+        end
+        Watermark.DragConnections = nil
+    end
+
     if Watermark.FrameConnection then
         Watermark.FrameConnection:Disconnect()
         Watermark.FrameConnection = nil
@@ -104,7 +149,7 @@ function Watermark.BuildSettings(content)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
-    label.Text = "Shows FPS, ping and nickname"
+    label.Text = "Shows FPS, ping and nickname. Drag it with the mouse"
     label.TextColor3 = Color3.fromRGB(160, 160, 160)
     label.Font = Enum.Font.GothamBold
     label.TextSize = 11
