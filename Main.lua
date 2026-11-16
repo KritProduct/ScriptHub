@@ -96,6 +96,7 @@ moduleList.Parent = moduleContainer
 
 local allModules = {}
 local applyOrder = nil
+local refreshView = nil
 
 local function createModule(name, tab, moduleTable)
     local moduleData = ModuleButton.Create(moduleContainer, name, tab, function(enabled)
@@ -109,8 +110,8 @@ local function createModule(name, tab, moduleTable)
             moduleTable.BuildSettings(content, player)
         end
     end, function()
-        if applyOrder then
-            applyOrder()
+        if refreshView then
+            refreshView()
         end
     end)
 
@@ -154,8 +155,8 @@ createModule("CHAT SPAMMER", "Misc", ChatSpammer)
 local configModule = ModuleButton.Create(moduleContainer, "CONFIG", "Misc", function() end, function(content)
     Config.BuildSettings(content, allModules)
 end, function()
-    if applyOrder then
-        applyOrder()
+    if refreshView then
+        refreshView()
     end
 end)
 
@@ -208,6 +209,8 @@ local function applyFilter()
         applyOrder()
     end
 end
+
+refreshView = applyFilter
 
 searchBox:GetPropertyChangedSignal("Text"):Connect(function()
     searchQuery = string.lower(searchBox.Text)

@@ -16,9 +16,16 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
     button.TextColor3 = Color3.new(1, 1, 1)
     button.Font = Enum.Font.GothamBlack
     button.TextSize = 14
+    button.TextXAlignment = Enum.TextXAlignment.Left
+    button.TextTruncate = Enum.TextTruncate.AtEnd
     button.AutoButtonColor = false
     button.ZIndex = 10
     button.Parent = wrapper
+
+    local buttonPadding = Instance.new("UIPadding")
+    buttonPadding.PaddingLeft = UDim.new(0, 36)
+    buttonPadding.PaddingRight = UDim.new(0, 132)
+    buttonPadding.Parent = button
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 10)
@@ -73,12 +80,12 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
     local pinBtn = Instance.new("TextButton")
     pinBtn.Size = UDim2.new(0, 35, 0, 35)
     pinBtn.Position = UDim2.new(1, -122, 0.5, -17)
-    pinBtn.Text = "P"
+    pinBtn.Text = "☆"
     pinBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     pinBtn.BorderSizePixel = 0
     pinBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
     pinBtn.Font = Enum.Font.GothamBlack
-    pinBtn.TextSize = 11
+    pinBtn.TextSize = 16
     pinBtn.AutoButtonColor = false
     pinBtn.ZIndex = 12
     pinBtn.Parent = button
@@ -124,9 +131,11 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
 
     local function updatePin()
         if favorite then
+            pinBtn.Text = "★"
             pinBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
             pinBtn.TextColor3 = Color3.new(1, 1, 1)
         else
+            pinBtn.Text = "☆"
             pinBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
             pinBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
         end
