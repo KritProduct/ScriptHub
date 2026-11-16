@@ -49,6 +49,19 @@ local function hasDrawing()
     return Drawing ~= nil
 end
 
+local ColorPicker = nil
+
+local function getColorPicker()
+    if not ColorPicker then
+        ColorPicker = _G.ScriptHubColorPicker
+        if not ColorPicker then
+            ColorPicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/ColorPicker.lua"))()
+            _G.ScriptHubColorPicker = ColorPicker
+        end
+    end
+    return ColorPicker
+end
+
 local function createState(boneCount)
     local state = {
         Lines = {},
@@ -250,15 +263,6 @@ local function createToggle(parent, text, default, callback)
 end
 
 function SkeletonESP.BuildSettings(content)
-    local colors = {
-        { Color = Color3.fromRGB(255, 255, 255) },
-        { Color = Color3.fromRGB(80, 140, 255) },
-        { Color = Color3.fromRGB(255, 60, 60) },
-        { Color = Color3.fromRGB(60, 255, 120) },
-        { Color = Color3.fromRGB(180, 80, 255) },
-        { Color = Color3.fromRGB(255, 220, 60) }
-    }
-
     if not hasDrawing() then
         local warning = Instance.new("TextLabel")
         warning.Size = UDim2.new(1, 0, 0, 34)
@@ -283,53 +287,9 @@ function SkeletonESP.BuildSettings(content)
     colorLabel.TextXAlignment = Enum.TextXAlignment.Left
     colorLabel.Parent = content
 
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, 0, 0, 30)
-    container.BackgroundTransparency = 1
-    container.Parent = content
-
-    local buttons = {}
-
-    local function updateButtons()
-        for _, data in ipairs(buttons) do
-            if SkeletonESP.Settings.Color == data.Color then
-                data.Button.BackgroundColor3 = data.Color
-                data.Button.TextColor3 = Color3.new(0, 0, 0)
-            else
-                data.Button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-                data.Button.TextColor3 = data.Color
-            end
-        end
-    end
-
-    for index, data in ipairs(colors) do
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(0, 20, 0, 20)
-        button.Position = UDim2.new(0, (index - 1) * 25, 0, 5)
-        button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-        button.BorderSizePixel = 0
-        button.Text = ""
-        button.AutoButtonColor = false
-        button.Parent = container
-
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 5)
-        corner.Parent = button
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Color = data.Color
-        stroke.Thickness = 1.5
-        stroke.Parent = button
-
-        button.MouseButton1Click:Connect(function()
-            SkeletonESP.Settings.Color = data.Color
-            updateButtons()
-        end)
-
-        table.insert(buttons, { Button = button, Color = data.Color })
-    end
-
-    updateButtons()
+    getColorPicker().Create(content, SkeletonESP.Settings.Color, function(color)
+        SkeletonESP.Settings.Color = color
+    end)
 
     createToggle(content, "Team Check", SkeletonESP.Settings.TeamCheck, function(value)
         SkeletonESP.Settings.TeamCheck = value

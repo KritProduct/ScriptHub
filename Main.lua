@@ -120,6 +120,8 @@ end)
 
 table.insert(allModules, configModule)
 
+Config.CreatePanel(player, allModules)
+
 local currentTab = "Movement"
 local searchQuery = ""
 

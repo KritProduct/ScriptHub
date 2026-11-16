@@ -2,6 +2,7 @@ local Speed = {}
 
 Speed.Settings = {
     Speed = 16,
+    Mode = "Humanoid",
     Keybind = nil
 }
 
@@ -19,12 +20,27 @@ local function getHumanoid(player)
     return character:FindFirstChildOfClass("Humanoid")
 end
 
-local function applySpeed(player, force)
+local function applyHumanoid(player)
     local humanoid = getHumanoid(player)
-    if humanoid then
-        if force or humanoid.WalkSpeed ~= Speed.Settings.Speed then
-            humanoid.WalkSpeed = Speed.Settings.Speed
-        end
+    if humanoid and humanoid.WalkSpeed ~= Speed.Settings.Speed then
+        humanoid.WalkSpeed = Speed.Settings.Speed
+    end
+end
+
+local function applyCFrame(player, deltaTime)
+    local humanoid = getHumanoid(player)
+    if not humanoid then return end
+
+    local root = humanoid.RootPart
+    if not root then return end
+
+    if humanoid.WalkSpeed ~= 0 then
+        humanoid.WalkSpeed = 0
+    end
+
+    local direction = humanoid.MoveDirection
+    if direction.Magnitude > 0 then
+        root.CFrame = root.CFrame + direction * Speed.Settings.Speed * deltaTime
     end
 end
 
@@ -38,17 +54,31 @@ function Speed.Start(player)
     Speed.Player = player
     Speed.OriginalWalkSpeed = currentHumanoid.WalkSpeed
 
-    applySpeed(player, true)
+    if Speed.Settings.Mode == "Humanoid" then
+        applyHumanoid(player)
+    else
+        applyCFrame(player, 0)
+    end
 
     Speed.CharacterConnection = player.CharacterAdded:Connect(function()
         if not Speed.Enabled then return end
         task.wait(0.2)
-        applySpeed(player, true)
+        if Speed.Settings.Mode == "Humanoid" then
+            applyHumanoid(player)
+        else
+            applyCFrame(player, 0)
+        end
     end)
 
-    Speed.LoopConnection = RunService.Heartbeat:Connect(function()
+    Speed.LoopConnection = RunService.Heartbeat:Connect(function(deltaTime)
         if not Speed.Enabled then return end
-        applySpeed(Speed.Player or game:GetService("Players").LocalPlayer or player, false)
+
+        local target = Speed.Player or game:GetService("Players").LocalPlayer or player
+        if Speed.Settings.Mode == "Humanoid" then
+            applyHumanoid(target)
+        else
+            applyCFrame(target, deltaTime)
+        end
     end)
 end
 
@@ -78,12 +108,70 @@ function Speed.BuildSettings(content, player)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
-    label.Text = "WalkSpeed"
+    label.Text = "Mode"
     label.TextColor3 = Color3.fromRGB(180, 180, 180)
     label.Font = Enum.Font.GothamBold
     label.TextSize = 11
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = content
+
+    local modeRow = Instance.new("Frame")
+    modeRow.Size = UDim2.new(1, 0, 0, 30)
+    modeRow.BackgroundTransparency = 1
+    modeRow.Parent = content
+
+    local modeButtons = {}
+
+    local function refreshModes()
+        for mode, button in pairs(modeButtons) do
+            if Speed.Settings.Mode == mode then
+                button.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+                button.TextColor3 = Color3.new(1, 1, 1)
+            else
+                button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                button.TextColor3 = Color3.fromRGB(200, 200, 200)
+            end
+        end
+    end
+
+    local function createModeButton(mode, x)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0.48, 0, 1, 0)
+        button.Position = UDim2.new(x, 0, 0, 0)
+        button.Text = mode
+        button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        button.BorderSizePixel = 0
+        button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        button.Font = Enum.Font.GothamBlack
+        button.TextSize = 12
+        button.AutoButtonColor = false
+        button.Parent = modeRow
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = button
+
+        button.MouseButton1Click:Connect(function()
+            Speed.Settings.Mode = mode
+            refreshModes()
+        end)
+
+        modeButtons[mode] = button
+    end
+
+    createModeButton("Humanoid", 0)
+    createModeButton("CFrame", 0.52)
+    refreshModes()
+
+    local speedLabel = Instance.new("TextLabel")
+    speedLabel.Size = UDim2.new(1, 0, 0, 20)
+    speedLabel.BackgroundTransparency = 1
+    speedLabel.Text = "Speed"
+    speedLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    speedLabel.Font = Enum.Font.GothamBold
+    speedLabel.TextSize = 11
+    speedLabel.TextXAlignment = Enum.TextXAlignment.Left
+    speedLabel.Parent = content
 
     local input = Instance.new("TextBox")
     input.Size = UDim2.new(1, 0, 0, 30)
@@ -102,13 +190,14 @@ function Speed.BuildSettings(content, player)
     inputCorner.Parent = input
 
     local hint = Instance.new("TextLabel")
-    hint.Size = UDim2.new(1, 0, 0, 16)
+    hint.Size = UDim2.new(1, 0, 0, 30)
     hint.BackgroundTransparency = 1
-    hint.Text = "16 = standard Roblox speed"
+    hint.Text = "Humanoid sets WalkSpeed. CFrame moves the character directly and ignores game speed checks."
     hint.TextColor3 = Color3.fromRGB(120, 120, 120)
     hint.Font = Enum.Font.GothamMedium
     hint.TextSize = 10
     hint.TextXAlignment = Enum.TextXAlignment.Left
+    hint.TextWrapped = true
     hint.Parent = content
 
     input.FocusLost:Connect(function()
@@ -117,8 +206,14 @@ function Speed.BuildSettings(content, player)
             Speed.Settings.Speed = math.clamp(value, 1, 500)
         end
         input.Text = tostring(Speed.Settings.Speed)
+
         if Speed.Enabled then
-            applySpeed(player or game.Players.LocalPlayer)
+            local target = player or game.Players.LocalPlayer
+            if Speed.Settings.Mode == "Humanoid" then
+                applyHumanoid(target)
+            else
+                applyCFrame(target, 0)
+            end
         end
     end)
 end
