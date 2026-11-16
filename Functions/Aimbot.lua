@@ -10,7 +10,6 @@ Aimbot.Settings = {
     TargetPart = "Head",
     Priority = "FOV",
     BotDetect = false,
-    SilentAim = false,
     Keybind = nil
 }
 
@@ -228,7 +227,6 @@ end
 
 function Aimbot.Start(player)
     local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
     
     Aimbot.Enabled = true
     Aimbot.TargetLocked = false
@@ -277,19 +275,8 @@ function Aimbot.Start(player)
                 return
             end
             
-            if Aimbot.Settings.SilentAim then
-                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-                    if mousemoverel then
-                        local mousePos = UserInputService:GetMouseLocation()
-                        local moveX = (sp.X - mousePos.X) * Aimbot.Settings.Speed / 20
-                        local moveY = (sp.Y - mousePos.Y) * Aimbot.Settings.Speed / 20
-                        mousemoverel(moveX, moveY)
-                    end
-                end
-            else
-                local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
-                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
-            end
+            local lookAt = CFrame.lookAt(cam.CFrame.Position, targetPart.Position)
+            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
             return
         end
         
@@ -299,22 +286,8 @@ function Aimbot.Start(player)
             Aimbot.CurrentTarget = closestModel
             Aimbot.TargetLocked = true
             
-            if Aimbot.Settings.SilentAim then
-                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-                    if mousemoverel then
-                        local sp, onScreen = cam:WorldToScreenPoint(closest.Position)
-                        if onScreen then
-                            local mousePos = UserInputService:GetMouseLocation()
-                            local moveX = (sp.X - mousePos.X) * Aimbot.Settings.Speed / 20
-                            local moveY = (sp.Y - mousePos.Y) * Aimbot.Settings.Speed / 20
-                            mousemoverel(moveX, moveY)
-                        end
-                    end
-                end
-            else
-                local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
-                cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
-            end
+            local lookAt = CFrame.lookAt(cam.CFrame.Position, closest.Position)
+            cam.CFrame = cam.CFrame:Lerp(lookAt, math.clamp(Aimbot.Settings.Speed / 20, 0.05, 1))
         end
     end)
     
@@ -502,10 +475,6 @@ function Aimbot.BuildSettings(content)
     createToggle("Draw FOV Circle", Aimbot.Settings.DrawFOV, function(v)
         Aimbot.Settings.DrawFOV = v
         Aimbot.RefreshFOV()
-    end)
-    
-    createToggle("Silent Aim", Aimbot.Settings.SilentAim, function(v)
-        Aimbot.Settings.SilentAim = v
     end)
     
     local priorityLabel = Instance.new("TextLabel")
