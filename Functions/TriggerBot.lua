@@ -11,8 +11,6 @@ TriggerBot.Connection = nil
 TriggerBot.LastAttack = 0
 TriggerBot.Status = nil
 
-local AIM_RADIUS = 150
-
 local PART_GROUPS = {
     Head = {
         ["Head"] = true
@@ -42,6 +40,8 @@ local PART_GROUPS = {
     }
 }
 
+local RAY_LENGTH = 2000
+
 function TriggerBot.BuildIgnoreList(player)
     local ignore = {}
     local char = player.Character
@@ -63,51 +63,63 @@ function TriggerBot.BuildIgnoreList(player)
     return ignore
 end
 
-function TriggerBot.IsPartVisible(target, camera, part, ignore)
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = ignore
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-
-    local origin = camera.CFrame.Position
-    local result = workspace:Raycast(origin, part.Position - origin, raycastParams)
-
-    if not result or not result.Instance then
-        return true
-    end
-
-    return result.Instance == part or result.Instance:IsDescendantOf(target.Character)
-end
-
-function TriggerBot.FindTargetPart(player, target, camera, center, ignore)
-    local character = target.Character
-    if not character then return nil end
-
-    local bestPart = nil
-    local bestDistance = math.huge
+function TriggerBot.FindTarget(player, camera, ignore)
     local group = PART_GROUPS[TriggerBot.Settings.AimPart] or PART_GROUPS.Torso
+    local origin = camera.CFrame.Position
+    local direction = camera.CFrame.LookVector * RAY_LENGTH
+    local unit = direction.Unit
+    local skipped = {}
 
-    if not ignore then
-        ignore = TriggerBot.BuildIgnoreList(player)
-    end
+    for _ = 1, 12 do
+        local filter = {}
 
-    for _, part in ipairs(character:GetDescendants()) do
-        if group[part.Name] and part:IsA("BasePart") and not part:FindFirstAncestorWhichIsA("Accessory") and not part:FindFirstAncestorWhichIsA("Accoutrement") then
-            local screenPos, onScreen = camera:WorldToScreenPoint(part.Position)
+        for _, item in ipairs(ignore) do
+            table.insert(filter, item)
+        end
 
-            if onScreen then
-                local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+        for _, item in ipairs(skipped) do
+            table.insert(filter, item)
+        end
 
-                if distance <= AIM_RADIUS and distance < bestDistance then
-                    if TriggerBot.IsPartVisible(target, camera, part, ignore) then
-                        bestPart = part
-                        bestDistance = distance
-                    end
-                end
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = filter
+        raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+        raycastParams.IgnoreWater = true
+        raycastParams.RespectCanCollide = false
+
+        local result = workspace:Raycast(origin, direction, raycastParams)
+
+        if not result or not result.Instance then
+            return nil
+        end
+
+        local instance = result.Instance
+        local owner = nil
+
+        for _, other in ipairs(game.Players:GetPlayers()) do
+            if other ~= player and other.Character and instance:IsDescendantOf(other.Character) then
+                owner = other
+                break
             end
         end
+
+        if not owner then
+            return nil
+        end
+
+        if group[instance.Name] and instance:IsA("BasePart") then
+            return instance, owner
+        end
+
+        if #skipped >= 11 then
+            return nil
+        end
+
+        table.insert(skipped, instance)
+        origin = result.Position + unit * 0.05
     end
 
-    return bestPart
+    return nil
 end
 
 function TriggerBot.Start(player)
@@ -153,34 +165,36 @@ function TriggerBot.Start(player)
         local cam = workspace.CurrentCamera
         if not cam then return end
 
-        local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
         local ignore = getIgnoreList()
-        local checked = 0
+        local part, owner = TriggerBot.FindTarget(player, cam, ignore)
 
-        for _, target in pairs(game.Players:GetPlayers()) do
-            if target ~= player and target.Character then
-                local humanoid = target.Character:FindFirstChild("Humanoid")
+        if part and owner then
+            local humanoid = owner.Character and owner.Character:FindFirstChild("Humanoid")
 
-                if humanoid and humanoid.Health > 0 then
-                    checked = checked + 1
-                    local part = TriggerBot.FindTargetPart(player, target, cam, center, ignore)
+            if humanoid and humanoid.Health > 0 then
+                local isFriend = false
 
-                    if part then
-                        clickMouse()
-                        TriggerBot.LastAttack = os.clock()
-                        setStatus("Firing at " .. part.Name, Color3.fromRGB(60, 255, 120))
-                        return
+                if TriggerBot.Settings.FriendCheck then
+                    if player.Team and owner.Team and player.Team == owner.Team then
+                        isFriend = true
                     end
+
+                    if owner:IsFriendsWith(player.UserId) then
+                        isFriend = true
+                    end
+                end
+
+                if not isFriend then
+                    clickMouse()
+                    TriggerBot.LastAttack = os.clock()
+                    setStatus("Firing at " .. part.Name, Color3.fromRGB(60, 255, 120))
+                    return
                 end
             end
         end
 
         if os.clock() - TriggerBot.LastAttack > 0.2 then
-            if checked == 0 then
-                setStatus("Status: no players to target", Color3.fromRGB(255, 160, 60))
-            else
-                setStatus("Status: no visible " .. string.lower(TriggerBot.Settings.AimPart) .. " near the crosshair", Color3.fromRGB(255, 160, 60))
-            end
+            setStatus("Status: crosshair not on " .. string.lower(TriggerBot.Settings.AimPart), Color3.fromRGB(255, 160, 60))
         end
     end
 
@@ -248,7 +262,7 @@ function TriggerBot.BuildSettings(content)
     local partLabel = Instance.new("TextLabel")
     partLabel.Size = UDim2.new(1, 0, 0, 20)
     partLabel.BackgroundTransparency = 1
-    partLabel.Text = "Shoot only when this part is in sight"
+    partLabel.Text = "Shoot only when the crosshair is on this part"
     partLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
     partLabel.Font = Enum.Font.GothamBold
     partLabel.TextSize = 11
@@ -307,7 +321,7 @@ function TriggerBot.BuildSettings(content)
     local info = Instance.new("TextLabel")
     info.Size = UDim2.new(1, 0, 0, 55)
     info.BackgroundTransparency = 1
-    info.Text = "Shoots automatically only at the selected part when it is visible near the crosshair. Wall check and left click are always on. Minimum interval is 30 ms to keep FPS stable"
+    info.Text = "Casts a ray from the camera through the crosshair. Shoots only when that ray reaches the selected part of a player and is not blocked by walls or other objects. Minimum interval is 30 ms to keep FPS stable"
     info.TextColor3 = Color3.fromRGB(120, 120, 120)
     info.Font = Enum.Font.GothamMedium
     info.TextSize = 10
