@@ -10,22 +10,25 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
     
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, 0, 0, 50)
-    button.Text = name .. ": OFF"
+    button.Text = ""
     button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     button.BorderSizePixel = 0
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.Font = Enum.Font.GothamBlack
-    button.TextSize = 14
-    button.TextXAlignment = Enum.TextXAlignment.Left
-    button.TextTruncate = Enum.TextTruncate.AtEnd
     button.AutoButtonColor = false
     button.ZIndex = 10
     button.Parent = wrapper
 
-    local buttonPadding = Instance.new("UIPadding")
-    buttonPadding.PaddingLeft = UDim.new(0, 36)
-    buttonPadding.PaddingRight = UDim.new(0, 132)
-    buttonPadding.Parent = button
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, -142, 1, 0)
+    nameLabel.Position = UDim2.new(0, 36, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = name .. ": OFF"
+    nameLabel.TextColor3 = Color3.new(1, 1, 1)
+    nameLabel.Font = Enum.Font.GothamBlack
+    nameLabel.TextSize = 14
+    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    nameLabel.ZIndex = 11
+    nameLabel.Parent = button
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 10)
@@ -204,11 +207,11 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
         
         if enabled then
             indicator.BackgroundColor3 = Color3.fromRGB(45, 255, 110)
-            button.Text = name .. ": ON"
+            nameLabel.Text = name .. ": ON"
             button.BackgroundColor3 = Color3.fromRGB(0, 50, 0)
         else
             indicator.BackgroundColor3 = Color3.fromRGB(255, 45, 45)
-            button.Text = name .. ": OFF"
+            nameLabel.Text = name .. ": OFF"
             button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
         end
         
