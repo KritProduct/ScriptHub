@@ -13,14 +13,32 @@ TriggerBot.Enabled = false
 TriggerBot.Connection = nil
 TriggerBot.LastAttack = 0
 
-function TriggerBot.IsPartVisible(player, target, camera, part)
+function TriggerBot.BuildIgnoreList(player)
+    local ignore = {}
+    local char = player.Character
+
+    if char then
+        table.insert(ignore, char)
+    end
+
+    for _, other in ipairs(game.Players:GetPlayers()) do
+        if other ~= player and other.Character then
+            for _, descendant in ipairs(other.Character:GetDescendants()) do
+                if descendant:IsA("Accessory") or descendant:IsA("Accoutrement") then
+                    table.insert(ignore, descendant)
+                end
+            end
+        end
+    end
+
+    return ignore
+end
+
+function TriggerBot.IsPartVisible(target, camera, part, ignore)
     if not TriggerBot.Settings.WallCheck then return true end
 
-    local char = player.Character
-    if not char then return false end
-
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {char}
+    raycastParams.FilterDescendantsInstances = ignore
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 
     local origin = camera.CFrame.Position
@@ -40,6 +58,7 @@ function TriggerBot.FindTargetPart(player, target, camera, center)
     local radius = TriggerBot.Settings.Fov
     local bestPart = nil
     local bestDistance = math.huge
+    local ignore = TriggerBot.BuildIgnoreList(player)
 
     for _, part in ipairs(character:GetChildren()) do
         if part:IsA("BasePart") then
@@ -49,7 +68,7 @@ function TriggerBot.FindTargetPart(player, target, camera, center)
                 local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
 
                 if distance <= radius and distance < bestDistance then
-                    if TriggerBot.IsPartVisible(player, target, camera, part) then
+                    if TriggerBot.IsPartVisible(target, camera, part, ignore) then
                         bestPart = part
                         bestDistance = distance
                     end
