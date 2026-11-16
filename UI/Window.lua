@@ -39,7 +39,7 @@ function Window.Create(player)
     titleBarCorner.Parent = titleBar
 
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -60, 1, 0)
+    title.Size = UDim2.new(1, -110, 1, 0)
     title.Position = UDim2.new(0, 20, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = "SCRIPT HUB"
@@ -64,6 +64,44 @@ function Window.Create(player)
     local closeCorner = Instance.new("UICorner")
     closeCorner.CornerRadius = UDim.new(0, 15)
     closeCorner.Parent = closeBtn
+
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+    minimizeBtn.Position = UDim2.new(1, -70, 0, 7)
+    minimizeBtn.Text = "_"
+    minimizeBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    minimizeBtn.Font = Enum.Font.GothamBlack
+    minimizeBtn.TextSize = 14
+    minimizeBtn.AutoButtonColor = false
+    minimizeBtn.Parent = titleBar
+
+    local minimizeCorner = Instance.new("UICorner")
+    minimizeCorner.CornerRadius = UDim.new(0, 15)
+    minimizeCorner.Parent = minimizeBtn
+
+    local miniBtn = Instance.new("TextButton")
+    miniBtn.Size = UDim2.new(0, 52, 0, 52)
+    miniBtn.Position = UDim2.new(0, 10, 0, 10)
+    miniBtn.Text = "SH"
+    miniBtn.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+    miniBtn.BorderSizePixel = 0
+    miniBtn.TextColor3 = Color3.fromRGB(80, 140, 255)
+    miniBtn.Font = Enum.Font.GothamBlack
+    miniBtn.TextSize = 16
+    miniBtn.AutoButtonColor = false
+    miniBtn.Visible = false
+    miniBtn.Parent = gui
+
+    local miniCorner = Instance.new("UICorner")
+    miniCorner.CornerRadius = UDim.new(0, 12)
+    miniCorner.Parent = miniBtn
+
+    local miniStroke = Instance.new("UIStroke")
+    miniStroke.Color = Color3.fromRGB(80, 140, 255)
+    miniStroke.Thickness = 1.5
+    miniStroke.Transparency = 0.2
+    miniStroke.Parent = miniBtn
 
     local leftPanel = Instance.new("Frame")
     leftPanel.Size = UDim2.new(0, 130, 1, -55)
@@ -93,7 +131,10 @@ function Window.Create(player)
         LeftPanel = leftPanel,
         RightPanel = rightPanel,
         CloseBtn = closeBtn,
-        Visible = true
+        MinimizeBtn = minimizeBtn,
+        MiniBtn = miniBtn,
+        Visible = true,
+        Minimized = false
     }
 
     local mouseGuardConnection = nil
@@ -132,6 +173,79 @@ function Window.Create(player)
             UserInputService.MouseBehavior = Enum.MouseBehavior.Default
         end)
     end
+
+    function window.Minimize()
+        if not window.Visible or window.Minimized then return end
+
+        window.Minimized = true
+        window.Visible = false
+
+        local position = main.AbsolutePosition
+        miniBtn.Position = UDim2.new(0, position.X, 0, position.Y)
+        miniBtn.Visible = true
+        main.Visible = false
+
+        stopMouseGuard()
+    end
+
+    function window.Restore()
+        if not window.Minimized then return end
+
+        window.Minimized = false
+        window.Visible = true
+        miniBtn.Visible = false
+        main.Visible = true
+
+        window.AnimateOpen()
+    end
+
+    local miniDragging = false
+    local miniMoved = false
+    local miniDragStart = nil
+    local miniStartPosition = nil
+
+    miniBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            miniDragging = true
+            miniMoved = false
+            miniDragStart = input.Position
+            miniStartPosition = miniBtn.Position
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if not miniDragging or not miniDragStart or not miniStartPosition then return end
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            local delta = input.Position - miniDragStart
+            if delta.Magnitude > 3 then
+                miniMoved = true
+            end
+            miniBtn.Position = UDim2.new(
+                miniStartPosition.X.Scale,
+                miniStartPosition.X.Offset + delta.X,
+                miniStartPosition.Y.Scale,
+                miniStartPosition.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            miniDragging = false
+        end
+    end)
+
+    miniBtn.MouseButton1Click:Connect(function()
+        if miniMoved then
+            miniMoved = false
+            return
+        end
+        window.Restore()
+    end)
+
+    minimizeBtn.MouseButton1Click:Connect(function()
+        window.Minimize()
+    end)
 
     function window.AnimateOpen()
         local sizeTween = TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 450, 0, 500)})
@@ -173,10 +287,16 @@ function Window.Create(player)
     end
 
     function window.Toggle()
+        if window.Minimized then
+            window.Restore()
+            return
+        end
+
         window.Visible = not window.Visible
 
         if window.Visible then
             gui.Enabled = true
+            main.Visible = true
             main.Size = UDim2.new(0, 0, 0, 0)
             window.AnimateOpen()
         else

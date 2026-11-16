@@ -2,7 +2,7 @@ local ModuleButton = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
+function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder, favoriteCallback)
     local wrapper = Instance.new("Frame")
     wrapper.Size = UDim2.new(1, 0, 0, 55)
     wrapper.BackgroundTransparency = 1
@@ -69,6 +69,23 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local settingsCorner = Instance.new("UICorner")
     settingsCorner.CornerRadius = UDim.new(0, 8)
     settingsCorner.Parent = settingsBtn
+
+    local pinBtn = Instance.new("TextButton")
+    pinBtn.Size = UDim2.new(0, 35, 0, 35)
+    pinBtn.Position = UDim2.new(1, -122, 0.5, -17)
+    pinBtn.Text = "P"
+    pinBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    pinBtn.BorderSizePixel = 0
+    pinBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+    pinBtn.Font = Enum.Font.GothamBlack
+    pinBtn.TextSize = 11
+    pinBtn.AutoButtonColor = false
+    pinBtn.ZIndex = 12
+    pinBtn.Parent = button
+
+    local pinCorner = Instance.new("UICorner")
+    pinCorner.CornerRadius = UDim.new(0, 8)
+    pinCorner.Parent = pinBtn
     
     local settingsPanel = Instance.new("Frame")
     settingsPanel.Size = UDim2.new(1, 0, 0, 0)
@@ -103,6 +120,32 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
     local animating = false
     local listening = false
     local keybind = nil
+    local favorite = false
+
+    local function updatePin()
+        if favorite then
+            pinBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+            pinBtn.TextColor3 = Color3.new(1, 1, 1)
+        else
+            pinBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+            pinBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
+        end
+    end
+
+    updatePin()
+
+    local function setFavorite(value, notify)
+        if favorite == value then return end
+        favorite = value
+        updatePin()
+        if notify and favoriteCallback then
+            favoriteCallback(favorite)
+        end
+    end
+
+    pinBtn.MouseButton1Click:Connect(function()
+        setFavorite(not favorite, true)
+    end)
     
     local function setZIndexRecursive(instance, z)
         instance.ZIndex = z
@@ -254,7 +297,10 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder)
             keybind = key
             refillBind()
         end,
-        GetKeybind = function() return keybind end
+        GetKeybind = function() return keybind end,
+        GetFavorite = function() return favorite end,
+        SetFavorite = function(value) setFavorite(value, true) end,
+        SetLayoutOrder = function(order) wrapper.LayoutOrder = order end
     }
 end
 

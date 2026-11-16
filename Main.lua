@@ -43,6 +43,14 @@ local CameraFOV = loadModule("Functions/CameraFOV.lua")
 local FreeCamera = loadModule("Functions/FreeCamera.lua")
 local Trail = loadModule("Functions/Trail.lua")
 local Watermark = loadModule("Functions/Watermark.lua")
+local AntiAim = loadModule("Functions/AntiAim.lua")
+local HitboxExpander = loadModule("Functions/HitboxExpander.lua")
+local Spinbot = loadModule("Functions/Spinbot.lua")
+local WalkOnWater = loadModule("Functions/WalkOnWater.lua")
+local AirWalk = loadModule("Functions/AirWalk.lua")
+local TeleportCoords = loadModule("Functions/TeleportCoords.lua")
+local AtmosphereEditor = loadModule("Functions/AtmosphereEditor.lua")
+local LightingEditor = loadModule("Functions/LightingEditor.lua")
 local Config = loadModule("Core/Config.lua")
 
 local window = Window.Create(player)
@@ -87,6 +95,7 @@ moduleList.Padding = UDim.new(0, 8)
 moduleList.Parent = moduleContainer
 
 local allModules = {}
+local applyOrder = nil
 
 local function createModule(name, tab, moduleTable)
     local moduleData = ModuleButton.Create(moduleContainer, name, tab, function(enabled)
@@ -98,6 +107,10 @@ local function createModule(name, tab, moduleTable)
     end, function(content)
         if moduleTable.BuildSettings then
             moduleTable.BuildSettings(content, player)
+        end
+    end, function()
+        if applyOrder then
+            applyOrder()
         end
     end)
 
@@ -115,15 +128,23 @@ createModule("INFINITY JUMP", "Movement", InfinityJump)
 createModule("GRAVITY", "Movement", Gravity)
 createModule("BLOCK SPAWN", "Movement", BlockSpawn)
 createModule("FREECAMERA", "Movement", FreeCamera)
+createModule("WALK ON WATER", "Movement", WalkOnWater)
+createModule("AIR WALK", "Movement", AirWalk)
+createModule("TELEPORT COORDS", "Movement", TeleportCoords)
 createModule("PLAYER ESP", "Visuals", PlayerESP)
 createModule("SKELETON ESP", "Visuals", SkeletonESP)
 createModule("NO FOG", "Visuals", NoFog)
 createModule("FULLBRIGHT", "Visuals", Fullbright)
 createModule("CAMERA FOV", "Visuals", CameraFOV)
+createModule("ATMOSPHERE EDITOR", "Visuals", AtmosphereEditor)
+createModule("LIGHTING EDITOR", "Visuals", LightingEditor)
 createModule("TRAIL", "Visuals", Trail)
 createModule("WATERMARK", "Visuals", Watermark)
 createModule("AIMBOT", "Combat", Aimbot)
 createModule("TRIGGER BOT", "Combat", TriggerBot)
+createModule("ANTI AIM", "Combat", AntiAim)
+createModule("HITBOX EXPANDER", "Combat", HitboxExpander)
+createModule("SPINBOT", "Combat", Spinbot)
 createModule("ANTI AFK", "Misc", AntiAFK)
 createModule("AUTO CLICKER", "Misc", AutoClicker)
 createModule("REJOIN", "Misc", Rejoin)
@@ -132,11 +153,39 @@ createModule("CHAT SPAMMER", "Misc", ChatSpammer)
 
 local configModule = ModuleButton.Create(moduleContainer, "CONFIG", "Misc", function() end, function(content)
     Config.BuildSettings(content, allModules)
+end, function()
+    if applyOrder then
+        applyOrder()
+    end
 end)
 
 table.insert(allModules, configModule)
 
 Config.CreatePanel(player, allModules)
+
+applyOrder = function()
+    local favorites = {}
+    local normal = {}
+
+    for _, moduleData in ipairs(allModules) do
+        local isFavorite = moduleData.GetFavorite and moduleData.GetFavorite()
+        if isFavorite then
+            table.insert(favorites, moduleData)
+        else
+            table.insert(normal, moduleData)
+        end
+    end
+
+    for index, moduleData in ipairs(favorites) do
+        moduleData.SetLayoutOrder(index)
+    end
+
+    for index, moduleData in ipairs(normal) do
+        moduleData.SetLayoutOrder(1000 + index)
+    end
+end
+
+applyOrder()
 
 local currentTab = "Movement"
 local searchQuery = ""
@@ -144,14 +193,19 @@ local searchQuery = ""
 local function applyFilter()
     for _, moduleData in pairs(allModules) do
         local visible
+        local isFavorite = moduleData.GetFavorite and moduleData.GetFavorite()
 
         if searchQuery ~= "" then
             visible = string.find(string.lower(moduleData.Name), searchQuery, 1, true) ~= nil
         else
-            visible = moduleData.Tab == currentTab
+            visible = moduleData.Tab == currentTab or isFavorite == true
         end
 
         moduleData.SetVisible(visible)
+    end
+
+    if applyOrder then
+        applyOrder()
     end
 end
 

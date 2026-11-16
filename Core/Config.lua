@@ -16,6 +16,46 @@ local function hasFolderApi()
         and type(delfile) == "function"
 end
 
+local BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+local function base64Encode(data)
+    return ((data:gsub(".", function(character)
+        local bits = ""
+        local byte = character:byte()
+        for index = 8, 1, -1 do
+            bits = bits .. (byte % 2 ^ index - byte % 2 ^ (index - 1) > 0 and "1" or "0")
+        end
+        return bits
+    end) .. "0000"):gsub("%d%d%d?%d?%d?%d?", function(bits)
+        if #bits < 6 then return "" end
+        local value = 0
+        for index = 1, 6 do
+            value = value + (bits:sub(index, index) == "1" and 2 ^ (6 - index) or 0)
+        end
+        return BASE64_CHARS:sub(value + 1, value + 1)
+    end) .. ({ "", "==", "=" })[#data % 3 + 1])
+end
+
+local function base64Decode(data)
+    data = string.gsub(data, "[^" .. BASE64_CHARS .. "=]", "")
+    return (data:gsub(".", function(character)
+        if character == "=" then return "" end
+        local bits = ""
+        local value = BASE64_CHARS:find(character, 1, true) - 1
+        for index = 6, 1, -1 do
+            bits = bits .. (value % 2 ^ index - value % 2 ^ (index - 1) > 0 and "1" or "0")
+        end
+        return bits
+    end):gsub("%d%d%d?%d?%d?%d?%d?%d?", function(bits)
+        if #bits ~= 8 then return "" end
+        local value = 0
+        for index = 1, 8 do
+            value = value + (bits:sub(index, index) == "1" and 2 ^ (8 - index) or 0)
+        end
+        return string.char(value)
+    end))
+end
+
 local function sanitizeName(name)
     if type(name) ~= "string" then return nil end
 
@@ -94,6 +134,7 @@ function Config.Save(modules, name)
 
             data.Modules[moduleData.Name] = {
                 Enabled = moduleData.GetEnabled and moduleData.GetEnabled() or false,
+                Favorite = moduleData.GetFavorite and moduleData.GetFavorite() or false,
                 Keybind = keybind and keybind.Name or nil,
                 Settings = encodeValue(moduleData.Module.Settings or {})
             }
@@ -194,6 +235,10 @@ function Config.Load(modules, name)
             if moduleData.SetEnabled then
                 moduleData.SetEnabled(entry.Enabled == true)
             end
+
+            if moduleData.SetFavorite then
+                moduleData.SetFavorite(entry.Favorite == true)
+            end
         end
     end
 
@@ -229,6 +274,89 @@ function Config.Delete(name)
     end
 
     return true, "Deleted " .. name
+end
+
+function Config.Export(name)
+    name = sanitizeName(name)
+    if not name then
+        return false, "Invalid config name"
+    end
+
+    if not hasFileApi() then
+        return false, "Executor has no file API"
+    end
+
+    local path = getPath(name)
+
+    local exists = pcall(function()
+        return isfile(path)
+    end)
+
+    if not exists and hasFolderApi() then
+        local legacyExists = pcall(function()
+            return isfile(CONFIG_FILE)
+        end)
+
+        if legacyExists then
+            path = CONFIG_FILE
+            exists = true
+        end
+    end
+
+    if not exists then
+        return false, "Config not found"
+    end
+
+    local ok, raw = pcall(function()
+        return readfile(path)
+    end)
+
+    if not ok or not raw then
+        return false, "Failed to read config"
+    end
+
+    return true, base64Encode(raw)
+end
+
+function Config.Import(encoded, name)
+    if type(encoded) ~= "string" or encoded == "" then
+        return false, "Config string is empty"
+    end
+
+    if not hasFileApi() then
+        return false, "Executor has no file API"
+    end
+
+    local okDecode, raw = pcall(function()
+        return base64Decode(encoded)
+    end)
+
+    if not okDecode or not raw or raw == "" then
+        return false, "Invalid config string"
+    end
+
+    local okJson, data = pcall(function()
+        return HttpService:JSONDecode(raw)
+    end)
+
+    if not okJson or type(data) ~= "table" or type(data.Modules) ~= "table" then
+        return false, "Config string is corrupted"
+    end
+
+    local targetName = sanitizeName(name) or sanitizeName(data.Name or "") or "imported"
+
+    local saved = pcall(function()
+        if hasFolderApi() and not isfolder(CONFIG_DIR) then
+            makefolder(CONFIG_DIR)
+        end
+        writefile(getPath(targetName), raw)
+    end)
+
+    if not saved then
+        return false, "Failed to write imported config"
+    end
+
+    return true, "Imported " .. targetName
 end
 
 function Config.List()
@@ -517,8 +645,50 @@ function Config.CreatePanel(player, allModules)
     feedback.ZIndex = 11
     feedback.Parent = panel
 
+    local importInput = Instance.new("TextBox")
+    importInput.Size = UDim2.new(0.62, -6, 0, 30)
+    importInput.Position = UDim2.new(0, 12, 1, -42)
+    importInput.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    importInput.BorderSizePixel = 0
+    importInput.PlaceholderText = "paste config string"
+    importInput.Text = ""
+    importInput.TextColor3 = Color3.new(1, 1, 1)
+    importInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
+    importInput.Font = Enum.Font.GothamBold
+    importInput.TextSize = 11
+    importInput.TextXAlignment = Enum.TextXAlignment.Left
+    importInput.ClearTextOnFocus = false
+    importInput.ZIndex = 11
+    importInput.Parent = panel
+
+    local importPadding = Instance.new("UIPadding")
+    importPadding.PaddingLeft = UDim.new(0, 8)
+    importPadding.PaddingRight = UDim.new(0, 8)
+    importPadding.Parent = importInput
+
+    local importCorner = Instance.new("UICorner")
+    importCorner.CornerRadius = UDim.new(0, 6)
+    importCorner.Parent = importInput
+
+    local importButton = Instance.new("TextButton")
+    importButton.Size = UDim2.new(0.38, -12, 0, 30)
+    importButton.Position = UDim2.new(0.62, 0, 1, -42)
+    importButton.Text = "Import"
+    importButton.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    importButton.BorderSizePixel = 0
+    importButton.TextColor3 = Color3.fromRGB(80, 140, 255)
+    importButton.Font = Enum.Font.GothamBlack
+    importButton.TextSize = 12
+    importButton.AutoButtonColor = false
+    importButton.ZIndex = 11
+    importButton.Parent = panel
+
+    local importButtonCorner = Instance.new("UICorner")
+    importButtonCorner.CornerRadius = UDim.new(0, 6)
+    importButtonCorner.Parent = importButton
+
     local list = Instance.new("ScrollingFrame")
-    list.Size = UDim2.new(1, -24, 1, -152)
+    list.Size = UDim2.new(1, -24, 1, -200)
     list.Position = UDim2.new(0, 12, 0, 144)
     list.BackgroundTransparency = 1
     list.BorderSizePixel = 0
@@ -589,7 +759,7 @@ function Config.CreatePanel(player, allModules)
             rowCorner.Parent = row
 
             local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1, -134, 1, 0)
+            label.Size = UDim2.new(1, -172, 1, 0)
             label.Position = UDim2.new(0, 8, 0, 0)
             label.BackgroundTransparency = 1
             label.Text = configName
@@ -603,7 +773,7 @@ function Config.CreatePanel(player, allModules)
 
             local function createActionButton(text, x, color, callback)
                 local button = Instance.new("TextButton")
-                button.Size = UDim2.new(0, 38, 0, 24)
+                button.Size = UDim2.new(0, 36, 0, 24)
                 button.Position = UDim2.new(1, x, 0.5, -12)
                 button.Text = text
                 button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
@@ -625,7 +795,7 @@ function Config.CreatePanel(player, allModules)
                 end)
             end
 
-            createActionButton("LOAD", -126, Color3.fromRGB(80, 140, 255), function(name)
+            createActionButton("LOAD", -160, Color3.fromRGB(80, 140, 255), function(name)
                 local ok, message = Config.Load(allModules, name)
                 if ok then
                     message = message .. ", reopen settings to see values"
@@ -633,11 +803,34 @@ function Config.CreatePanel(player, allModules)
                 return ok, message
             end)
 
-            createActionButton("SAVE", -86, Color3.fromRGB(60, 255, 120), function(name)
+            createActionButton("EXP", -120, Color3.fromRGB(255, 200, 60), function(name)
+                local ok, result = Config.Export(name)
+                if not ok then
+                    return false, result
+                end
+
+                importInput.Text = result
+
+                local copied = false
+
+                if type(setclipboard) == "function" then
+                    copied = pcall(function()
+                        setclipboard(result)
+                    end)
+                end
+
+                if copied then
+                    return true, "Exported " .. name .. " to clipboard and the field below"
+                end
+
+                return true, "Exported " .. name .. " into the field below"
+            end)
+
+            createActionButton("SAVE", -80, Color3.fromRGB(60, 255, 120), function(name)
                 return Config.Save(allModules, name)
             end)
 
-            createActionButton("DEL", -46, Color3.fromRGB(255, 80, 80), function(name)
+            createActionButton("DEL", -40, Color3.fromRGB(255, 80, 80), function(name)
                 local ok, message = Config.Delete(name)
                 refreshList()
                 return ok, message
@@ -657,6 +850,16 @@ function Config.CreatePanel(player, allModules)
 
         if ok then
             nameInput.Text = ""
+            refreshList()
+        end
+    end)
+
+    importButton.MouseButton1Click:Connect(function()
+        local ok, message = Config.Import(importInput.Text, nameInput.Text)
+        setFeedback(message, ok)
+
+        if ok then
+            importInput.Text = ""
             refreshList()
         end
     end)
