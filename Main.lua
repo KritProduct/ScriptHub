@@ -1,7 +1,7 @@
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
-local BUILD_VERSION = "1.4"
+local BUILD_VERSION = "1.5"
 local BASE_URL = "https://raw.githubusercontent.com/KritProduct/ScriptHub/main/"
 local CACHE_BUST = tostring(math.floor(os.time()))
 
@@ -259,10 +259,10 @@ window.CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.Delete or input.KeyCode == Enum.KeyCode.K then
-        if UserInputService:GetFocusedTextBox() then return end
-        window.Toggle()
-    end
+    if input.KeyCode ~= Enum.KeyCode.K then return end
+    if _G.ScriptHubBinding then return end
+    if UserInputService:GetFocusedTextBox() then return end
+    window.Toggle()
 end)
 
 local function makeDraggable(frame, handle)

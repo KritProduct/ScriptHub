@@ -227,10 +227,29 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
         toggleModule()
     end)
     
+    local bindToken = 0
+
+    local function stopListening(connection)
+        listening = false
+        _G.ScriptHubBinding = false
+        refillBind()
+
+        if connection then
+            connection:Disconnect()
+        end
+    end
+
     bindBtn.MouseButton1Click:Connect(function()
-        if listening then return end
+        if listening then
+            stopListening(nil)
+            return
+        end
+
         listening = true
         _G.ScriptHubBinding = true
+        bindToken = bindToken + 1
+        local token = bindToken
+
         bindBtn.Text = "..."
         bindBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
         bindBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -245,6 +264,7 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
         
         local connection
         connection = UserInputService.InputBegan:Connect(function(input)
+            if not listening then return end
             if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
             if UserInputService:GetFocusedTextBox() then return end
             
@@ -254,16 +274,19 @@ function ModuleButton.Create(parent, name, tab, toggleCallback, settingsBuilder,
                 keybind = input.KeyCode
             end
             
-            listening = false
-            _G.ScriptHubBinding = false
-            refillBind()
-            connection:Disconnect()
+            stopListening(connection)
+        end)
+
+        task.delay(6, function()
+            if listening and token == bindToken then
+                stopListening(connection)
+            end
         end)
     end)
     
     UserInputService.InputBegan:Connect(function(input)
         if not keybind then return end
-        if listening or input.gameProcessedEvent then return end
+        if listening then return end
         if UserInputService:GetFocusedTextBox() then return end
         if input.KeyCode == keybind then
             toggleModule()
