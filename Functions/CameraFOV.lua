@@ -7,11 +7,16 @@ CameraFOV.Settings = {
 
 CameraFOV.Enabled = false
 CameraFOV.OriginalFOV = nil
+CameraFOV.Connection = nil
+
+local RunService = game:GetService("RunService")
 
 local function applyFOV()
     local camera = workspace.CurrentCamera
     if camera then
-        camera.FieldOfView = CameraFOV.Settings.FOV
+        if camera.FieldOfView ~= CameraFOV.Settings.FOV then
+            camera.FieldOfView = CameraFOV.Settings.FOV
+        end
     end
 end
 
@@ -19,20 +24,28 @@ function CameraFOV.Start()
     local camera = workspace.CurrentCamera
     if not camera then return end
 
-    if not CameraFOV.Enabled then
-        CameraFOV.OriginalFOV = camera.FieldOfView
-    end
+    if CameraFOV.Enabled then return end
 
     CameraFOV.Enabled = true
+    CameraFOV.OriginalFOV = camera.FieldOfView
     applyFOV()
+
+    CameraFOV.Connection = RunService.RenderStepped:Connect(function()
+        if CameraFOV.Enabled then applyFOV() end
+    end)
 end
 
 function CameraFOV.Stop()
     CameraFOV.Enabled = false
 
+    if CameraFOV.Connection then
+        CameraFOV.Connection:Disconnect()
+        CameraFOV.Connection = nil
+    end
+
     local camera = workspace.CurrentCamera
-    if camera then
-        camera.FieldOfView = CameraFOV.OriginalFOV or 70
+    if camera and CameraFOV.OriginalFOV ~= nil then
+        camera.FieldOfView = CameraFOV.OriginalFOV
     end
 
     CameraFOV.OriginalFOV = nil

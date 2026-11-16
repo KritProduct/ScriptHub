@@ -9,14 +9,6 @@ Watermark.Gui = nil
 Watermark.FrameConnection = nil
 Watermark.Session = nil
 
-local function formatTime(seconds)
-    local total = math.floor(seconds)
-    local hours = math.floor(total / 3600)
-    local minutes = math.floor((total % 3600) / 60)
-    local secs = total % 60
-    return string.format("%02d:%02d:%02d", hours, minutes, secs)
-end
-
 function Watermark.Start(player)
     local RunService = game:GetService("RunService")
     local Stats = game:GetService("Stats")
@@ -68,8 +60,6 @@ function Watermark.Start(player)
         frames += 1
     end)
 
-    local startTime = os.clock()
-
     task.spawn(function()
         while Watermark.Enabled and Watermark.Session == session do
             local fps = math.floor(frames * 2 + 0.5)
@@ -78,13 +68,17 @@ function Watermark.Start(player)
             local pingText = "N/A"
             pcall(function()
                 local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
-                if ping then
-                    pingText = tostring(math.floor(ping)) .. "ms"
+                if ping and ping > 0 then
+                    pingText = tostring(math.floor(ping + 0.5)) .. "ms"
+                else
+                    local networkPing = player:GetNetworkPing() * 1000
+                    if networkPing and networkPing > 0 then
+                        pingText = tostring(math.floor(networkPing + 0.5)) .. "ms"
+                    end
                 end
             end)
 
-            local uptime = formatTime(os.clock() - startTime)
-            label.Text = string.format("  SCRIPT HUB  |  FPS: %d  |  PING: %s  |  %s  |  %s  ", fps, pingText, player.Name, uptime)
+            label.Text = string.format("  SCRIPT HUB  |  FPS: %d  |  PING: %s  |  %s  ", fps, pingText, player.Name)
 
             task.wait(0.5)
         end
@@ -110,7 +104,7 @@ function Watermark.BuildSettings(content)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
-    label.Text = "Shows FPS, ping, nickname and uptime"
+    label.Text = "Shows FPS, ping and nickname"
     label.TextColor3 = Color3.fromRGB(160, 160, 160)
     label.Font = Enum.Font.GothamBold
     label.TextSize = 11

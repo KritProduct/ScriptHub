@@ -6,16 +6,57 @@ TimeChanger.Settings = {
 }
 
 TimeChanger.Enabled = false
+TimeChanger.OriginalClockTime = nil
+TimeChanger.LoopConnection = nil
+TimeChanger.PropertyConnection = nil
+
+local RunService = game:GetService("RunService")
+
+local function applyTime()
+    local Lighting = game:GetService("Lighting")
+    if Lighting.ClockTime ~= TimeChanger.Settings.Time then
+        Lighting.ClockTime = TimeChanger.Settings.Time
+    end
+end
 
 function TimeChanger.Start(player)
+    if TimeChanger.Enabled then return end
+
     local Lighting = game:GetService("Lighting")
-    
+
     TimeChanger.Enabled = true
-    Lighting.ClockTime = TimeChanger.Settings.Time
+    TimeChanger.OriginalClockTime = Lighting.ClockTime
+
+    applyTime()
+
+    TimeChanger.LoopConnection = RunService.Heartbeat:Connect(function()
+        if TimeChanger.Enabled then applyTime() end
+    end)
+
+    TimeChanger.PropertyConnection = Lighting:GetPropertyChangedSignal("ClockTime"):Connect(function()
+        if TimeChanger.Enabled then applyTime() end
+    end)
 end
 
 function TimeChanger.Stop()
     TimeChanger.Enabled = false
+
+    if TimeChanger.LoopConnection then
+        TimeChanger.LoopConnection:Disconnect()
+        TimeChanger.LoopConnection = nil
+    end
+
+    if TimeChanger.PropertyConnection then
+        TimeChanger.PropertyConnection:Disconnect()
+        TimeChanger.PropertyConnection = nil
+    end
+
+    local Lighting = game:GetService("Lighting")
+    if TimeChanger.OriginalClockTime ~= nil then
+        Lighting.ClockTime = TimeChanger.OriginalClockTime
+    end
+
+    TimeChanger.OriginalClockTime = nil
 end
 
 function TimeChanger.BuildSettings(content)

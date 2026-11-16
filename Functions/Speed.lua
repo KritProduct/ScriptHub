@@ -8,6 +8,10 @@ Speed.Settings = {
 Speed.Enabled = false
 Speed.OriginalWalkSpeed = nil
 Speed.CharacterConnection = nil
+Speed.LoopConnection = nil
+Speed.Player = nil
+
+local RunService = game:GetService("RunService")
 
 local function getHumanoid(player)
     local character = player.Character
@@ -15,10 +19,12 @@ local function getHumanoid(player)
     return character:FindFirstChildOfClass("Humanoid")
 end
 
-local function applySpeed(player)
+local function applySpeed(player, force)
     local humanoid = getHumanoid(player)
     if humanoid then
-        humanoid.WalkSpeed = Speed.Settings.Speed
+        if force or humanoid.WalkSpeed ~= Speed.Settings.Speed then
+            humanoid.WalkSpeed = Speed.Settings.Speed
+        end
     end
 end
 
@@ -26,15 +32,23 @@ function Speed.Start(player)
     local currentHumanoid = getHumanoid(player)
     if not currentHumanoid then return end
 
+    if Speed.Enabled then return end
+
     Speed.Enabled = true
+    Speed.Player = player
     Speed.OriginalWalkSpeed = currentHumanoid.WalkSpeed
 
-    applySpeed(player)
+    applySpeed(player, true)
 
     Speed.CharacterConnection = player.CharacterAdded:Connect(function()
         if not Speed.Enabled then return end
         task.wait(0.2)
-        applySpeed(player)
+        applySpeed(player, true)
+    end)
+
+    Speed.LoopConnection = RunService.Heartbeat:Connect(function()
+        if not Speed.Enabled then return end
+        applySpeed(Speed.Player or game:GetService("Players").LocalPlayer or player, false)
     end)
 end
 
@@ -46,12 +60,18 @@ function Speed.Stop(player)
         Speed.CharacterConnection = nil
     end
 
+    if Speed.LoopConnection then
+        Speed.LoopConnection:Disconnect()
+        Speed.LoopConnection = nil
+    end
+
     local humanoid = getHumanoid(player)
-    if humanoid then
-        humanoid.WalkSpeed = Speed.OriginalWalkSpeed or 16
+    if humanoid and Speed.OriginalWalkSpeed ~= nil then
+        humanoid.WalkSpeed = Speed.OriginalWalkSpeed
     end
 
     Speed.OriginalWalkSpeed = nil
+    Speed.Player = nil
 end
 
 function Speed.BuildSettings(content, player)

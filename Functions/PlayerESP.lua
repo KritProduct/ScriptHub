@@ -6,7 +6,6 @@ PlayerESP.Settings = {
     Distance = true,
     Health = true,
     Tracer = true,
-    Highlight = false,
     TeamCheck = false,
     MaxDistance = 1000,
     Color = Color3.fromRGB(80, 140, 255),
@@ -65,9 +64,6 @@ local function createState()
     state.Tracer.Thickness = 1
     state.Tracer.Transparency = 1
 
-    state.Character = nil
-    state.Highlight = nil
-
     return state
 end
 
@@ -78,10 +74,6 @@ local function hideState(state)
     state.HealthBack.Visible = false
     state.HealthFill.Visible = false
     state.Tracer.Visible = false
-
-    if state.Highlight then
-        state.Highlight.Enabled = false
-    end
 end
 
 local function removeState(target)
@@ -94,10 +86,6 @@ local function removeState(target)
     destroyDrawing(state.HealthBack)
     destroyDrawing(state.HealthFill)
     destroyDrawing(state.Tracer)
-
-    if state.Highlight then
-        state.Highlight:Destroy()
-    end
 
     PlayerESP.States[target] = nil
 end
@@ -147,30 +135,6 @@ function PlayerESP.Start(player)
                     end
 
                     local color = PlayerESP.Settings.Color
-
-                    if state.Character ~= character then
-                        if state.Highlight then
-                            state.Highlight:Destroy()
-                            state.Highlight = nil
-                        end
-                        state.Character = character
-                    end
-
-                    if PlayerESP.Settings.Highlight then
-                        if not state.Highlight then
-                            local highlight = Instance.new("Highlight")
-                            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                            highlight.FillTransparency = 0.5
-                            highlight.Parent = character
-                            state.Highlight = highlight
-                        end
-
-                        state.Highlight.FillColor = color
-                        state.Highlight.OutlineColor = color
-                        state.Highlight.Enabled = true
-                    elseif state.Highlight then
-                        state.Highlight.Enabled = false
-                    end
 
                     local distance = (camera.CFrame.Position - root.Position).Magnitude
                     local visible = false
@@ -435,10 +399,6 @@ function PlayerESP.BuildSettings(content)
 
     createToggle(content, "Tracer", PlayerESP.Settings.Tracer, function(value)
         PlayerESP.Settings.Tracer = value
-    end)
-
-    createToggle(content, "Highlight", PlayerESP.Settings.Highlight, function(value)
-        PlayerESP.Settings.Highlight = value
     end)
 
     createToggle(content, "Team Check", PlayerESP.Settings.TeamCheck, function(value)

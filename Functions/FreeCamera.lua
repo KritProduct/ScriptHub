@@ -8,15 +8,63 @@ FreeCamera.Settings = {
 
 FreeCamera.Enabled = false
 FreeCamera.Connection = nil
+FreeCamera.CharacterConnection = nil
 FreeCamera.OriginalCameraType = nil
 FreeCamera.OriginalSubject = nil
+FreeCamera.OriginalWalkSpeed = nil
+FreeCamera.OriginalJumpPower = nil
+FreeCamera.OriginalJumpHeight = nil
+FreeCamera.OriginalAutoRotate = nil
 FreeCamera.Yaw = 0
 FreeCamera.Pitch = 0
 FreeCamera.Locked = false
 
+local function getHumanoid()
+    local player = game:GetService("Players").LocalPlayer
+    local character = player and player.Character
+    if not character then return nil end
+    return character:FindFirstChildOfClass("Humanoid")
+end
+
+local function freezeCharacter()
+    local humanoid = getHumanoid()
+    if not humanoid then return end
+
+    if FreeCamera.OriginalWalkSpeed == nil then
+        FreeCamera.OriginalWalkSpeed = humanoid.WalkSpeed
+        FreeCamera.OriginalJumpPower = humanoid.JumpPower
+        FreeCamera.OriginalJumpHeight = humanoid.JumpHeight
+        FreeCamera.OriginalAutoRotate = humanoid.AutoRotate
+    end
+
+    if humanoid.WalkSpeed ~= 0 then humanoid.WalkSpeed = 0 end
+    if humanoid.JumpPower ~= 0 then humanoid.JumpPower = 0 end
+    if humanoid.JumpHeight ~= 0 then humanoid.JumpHeight = 0 end
+    if humanoid.AutoRotate then humanoid.AutoRotate = false end
+end
+
+local function releaseCharacter()
+    local humanoid = getHumanoid()
+    if not humanoid then return end
+
+    if FreeCamera.OriginalWalkSpeed ~= nil then
+        humanoid.WalkSpeed = FreeCamera.OriginalWalkSpeed
+    end
+    if FreeCamera.OriginalJumpPower ~= nil then
+        humanoid.JumpPower = FreeCamera.OriginalJumpPower
+    end
+    if FreeCamera.OriginalJumpHeight ~= nil then
+        humanoid.JumpHeight = FreeCamera.OriginalJumpHeight
+    end
+    if FreeCamera.OriginalAutoRotate ~= nil then
+        humanoid.AutoRotate = FreeCamera.OriginalAutoRotate
+    end
+end
+
 function FreeCamera.Start()
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
+    local player = game:GetService("Players").LocalPlayer
 
     local camera = workspace.CurrentCamera
     if not camera then return end
@@ -33,11 +81,22 @@ function FreeCamera.Start()
 
     camera.CameraType = Enum.CameraType.Scriptable
 
+    freezeCharacter()
+
+    FreeCamera.CharacterConnection = player.CharacterAdded:Connect(function()
+        if not FreeCamera.Enabled then return end
+        task.wait(0.2)
+        FreeCamera.OriginalWalkSpeed = nil
+        freezeCharacter()
+    end)
+
     FreeCamera.Connection = RunService.RenderStepped:Connect(function(deltaTime)
         if not FreeCamera.Enabled then return end
 
         local cam = workspace.CurrentCamera
         if not cam then return end
+
+        freezeCharacter()
 
         local looking = UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
 
@@ -87,6 +146,13 @@ function FreeCamera.Stop()
         FreeCamera.Connection = nil
     end
 
+    if FreeCamera.CharacterConnection then
+        FreeCamera.CharacterConnection:Disconnect()
+        FreeCamera.CharacterConnection = nil
+    end
+
+    releaseCharacter()
+
     local camera = workspace.CurrentCamera
     if camera then
         camera.CameraType = FreeCamera.OriginalCameraType or Enum.CameraType.Custom
@@ -97,6 +163,10 @@ function FreeCamera.Stop()
     FreeCamera.Locked = false
     FreeCamera.OriginalCameraType = nil
     FreeCamera.OriginalSubject = nil
+    FreeCamera.OriginalWalkSpeed = nil
+    FreeCamera.OriginalJumpPower = nil
+    FreeCamera.OriginalJumpHeight = nil
+    FreeCamera.OriginalAutoRotate = nil
 end
 
 function FreeCamera.BuildSettings(content)
