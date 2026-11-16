@@ -55,7 +55,7 @@ local function getColorPicker()
     if not ColorPicker then
         ColorPicker = _G.ScriptHubColorPicker
         if not ColorPicker then
-            ColorPicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/ColorPicker.lua"))()
+            ColorPicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/ColorPicker.lua?v=" .. tostring(math.floor(os.time()))))()
             _G.ScriptHubColorPicker = ColorPicker
         end
     end

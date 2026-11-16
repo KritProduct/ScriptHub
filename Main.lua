@@ -1,33 +1,49 @@
 local player = game.Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 
-local Window = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/Window.lua"))()
-local Tabs = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/Tabs.lua"))()
-local ModuleButton = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/UI/ModuleButton.lua"))()
-local Fly = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fly.lua"))()
-local Noclip = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Noclip.lua"))()
-local Speed = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Speed.lua"))()
-local PlayerESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/PlayerESP.lua"))()
-local SkeletonESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/SkeletonESP.lua"))()
-local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Aimbot.lua"))()
-local TriggerBot = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TriggerBot.lua"))()
-local InfinityJump = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/InfinityJump.lua"))()
-local BunnyHop = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/BunnyHop.lua"))()
-local Teleport = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Teleport.lua"))()
-local Gravity = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Gravity.lua"))()
-local NoFog = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/NoFog.lua"))()
-local Fullbright = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Fullbright.lua"))()
-local AntiAFK = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AntiAFK.lua"))()
-local AutoClicker = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/AutoClicker.lua"))()
-local Rejoin = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Rejoin.lua"))()
-local TimeChanger = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/TimeChanger.lua"))()
-local ChatSpammer = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/ChatSpammer.lua"))()
-local BlockSpawn = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/BlockSpawn.lua"))()
-local CameraFOV = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/CameraFOV.lua"))()
-local FreeCamera = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/FreeCamera.lua"))()
-local Trail = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Trail.lua"))()
-local Watermark = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Functions/Watermark.lua"))()
-local Config = loadstring(game:HttpGet("https://raw.githubusercontent.com/KritProduct/ScriptHub/main/Core/Config.lua"))()
+local BASE_URL = "https://raw.githubusercontent.com/KritProduct/ScriptHub/main/"
+local CACHE_BUST = tostring(math.floor(os.time()))
+
+local function loadModule(path)
+    local url = BASE_URL .. path .. "?v=" .. CACHE_BUST
+    local ok, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+
+    if not ok then
+        error("ScriptHub failed to load " .. path .. ": " .. tostring(result))
+    end
+
+    return result
+end
+
+local Window = loadModule("UI/Window.lua")
+local Tabs = loadModule("UI/Tabs.lua")
+local ModuleButton = loadModule("UI/ModuleButton.lua")
+local Fly = loadModule("Functions/Fly.lua")
+local Noclip = loadModule("Functions/Noclip.lua")
+local Speed = loadModule("Functions/Speed.lua")
+local PlayerESP = loadModule("Functions/PlayerESP.lua")
+local SkeletonESP = loadModule("Functions/SkeletonESP.lua")
+local Aimbot = loadModule("Functions/Aimbot.lua")
+local TriggerBot = loadModule("Functions/TriggerBot.lua")
+local InfinityJump = loadModule("Functions/InfinityJump.lua")
+local BunnyHop = loadModule("Functions/BunnyHop.lua")
+local Teleport = loadModule("Functions/Teleport.lua")
+local Gravity = loadModule("Functions/Gravity.lua")
+local NoFog = loadModule("Functions/NoFog.lua")
+local Fullbright = loadModule("Functions/Fullbright.lua")
+local AntiAFK = loadModule("Functions/AntiAFK.lua")
+local AutoClicker = loadModule("Functions/AutoClicker.lua")
+local Rejoin = loadModule("Functions/Rejoin.lua")
+local TimeChanger = loadModule("Functions/TimeChanger.lua")
+local ChatSpammer = loadModule("Functions/ChatSpammer.lua")
+local BlockSpawn = loadModule("Functions/BlockSpawn.lua")
+local CameraFOV = loadModule("Functions/CameraFOV.lua")
+local FreeCamera = loadModule("Functions/FreeCamera.lua")
+local Trail = loadModule("Functions/Trail.lua")
+local Watermark = loadModule("Functions/Watermark.lua")
+local Config = loadModule("Core/Config.lua")
 
 local window = Window.Create(player)
 local tabs = Tabs.Create(window.LeftPanel)
@@ -156,15 +172,7 @@ window.CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.Delete then
-        if UserInputService:GetFocusedTextBox() then return end
-        window.Toggle()
-        return
-    end
-
-    if input.KeyCode == Enum.KeyCode.K then
-        if input.gameProcessedEvent then return end
-        if _G.ScriptHubBinding then return end
+    if input.KeyCode == Enum.KeyCode.Delete or input.KeyCode == Enum.KeyCode.K then
         if UserInputService:GetFocusedTextBox() then return end
         window.Toggle()
     end

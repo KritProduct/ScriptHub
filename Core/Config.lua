@@ -269,6 +269,29 @@ function Config.List()
     return names
 end
 
+function Config.MigrateLegacy()
+    if not hasFileApi() or not hasFolderApi() then return false end
+
+    local ok, result = pcall(function()
+        if not isfolder(CONFIG_DIR) then
+            makefolder(CONFIG_DIR)
+        end
+
+        local target = getPath(DEFAULT_NAME)
+
+        if isfile(CONFIG_FILE) and not isfile(target) then
+            local raw = readfile(CONFIG_FILE)
+            if raw then
+                writefile(target, raw)
+            end
+        end
+
+        return true
+    end)
+
+    return ok and result == true
+end
+
 function Config.BuildSettings(content, allModules)
     local statusLabel = Instance.new("TextLabel")
     statusLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -643,14 +666,25 @@ function Config.CreatePanel(player, allModules)
     end)
 
     toggleButton.MouseButton1Click:Connect(function()
-        panelOpen = true
-        panel:TweenPosition(
-            UDim2.new(0, 10, 0.5, 0),
-            Enum.EasingDirection.Out,
-            Enum.EasingStyle.Quart,
-            0.3,
-            true
-        )
+        panelOpen = not panelOpen
+
+        if panelOpen then
+            panel:TweenPosition(
+                UDim2.new(0, 82, 0.5, 0),
+                Enum.EasingDirection.Out,
+                Enum.EasingStyle.Quart,
+                0.3,
+                true
+            )
+        else
+            panel:TweenPosition(
+                UDim2.new(0, -280, 0.5, 0),
+                Enum.EasingDirection.In,
+                Enum.EasingStyle.Quart,
+                0.3,
+                true
+            )
+        end
     end)
 
     closeButton.MouseButton1Click:Connect(function()
@@ -663,6 +697,8 @@ function Config.CreatePanel(player, allModules)
             true
         )
     end)
+
+    Config.MigrateLegacy()
 
     refreshList()
 
