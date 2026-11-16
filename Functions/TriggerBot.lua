@@ -48,13 +48,16 @@ function TriggerBot.IsPartVisible(target, camera, part, ignore)
     return result.Instance == part or result.Instance:IsDescendantOf(target.Character)
 end
 
-function TriggerBot.FindTargetPart(player, target, camera, center)
+function TriggerBot.FindTargetPart(player, target, camera, center, ignore)
     local character = target.Character
     if not character then return nil end
 
     local bestPart = nil
     local bestDistance = math.huge
-    local ignore = TriggerBot.BuildIgnoreList(player)
+
+    if not ignore then
+        ignore = TriggerBot.BuildIgnoreList(player)
+    end
 
     for _, part in ipairs(character:GetDescendants()) do
         if part:IsA("BasePart") and not part:FindFirstAncestorWhichIsA("Accessory") and not part:FindFirstAncestorWhichIsA("Accoutrement") then
@@ -77,39 +80,50 @@ function TriggerBot.FindTargetPart(player, target, camera, center)
 end
 
 function TriggerBot.Start(player)
-    local RunService = game:GetService("RunService")
+    if TriggerBot.Enabled then return end
 
     TriggerBot.Enabled = true
     TriggerBot.LastAttack = 0
 
-    if TriggerBot.Status and TriggerBot.Status.Parent then
-        TriggerBot.Status.Text = "Status: waiting"
-        TriggerBot.Status.TextColor3 = Color3.fromRGB(160, 160, 160)
-    end
+    local lastStatus = nil
+    local ignoreList = nil
+    local ignoreTime = 0
 
     local function setStatus(text, color)
+        if lastStatus == text then return end
+        lastStatus = text
+
         if TriggerBot.Status and TriggerBot.Status.Parent then
             TriggerBot.Status.Text = text
             TriggerBot.Status.TextColor3 = color or Color3.fromRGB(160, 160, 160)
         end
     end
 
+    local function getIgnoreList()
+        local now = os.clock()
+
+        if not ignoreList or now - ignoreTime > 0.5 then
+            ignoreList = TriggerBot.BuildIgnoreList(player)
+            ignoreTime = now
+        end
+
+        return ignoreList
+    end
+
     local function clickMouse()
         pcall(function()
             mouse1press()
-            task.wait(0.01)
+            task.wait(0.005)
             mouse1release()
         end)
     end
 
-    TriggerBot.Connection = RunService.RenderStepped:Connect(function()
-        if not TriggerBot.Enabled then return end
-        if os.clock() - TriggerBot.LastAttack < TriggerBot.Settings.Delay / 1000 then return end
-
+    local function scan()
         local cam = workspace.CurrentCamera
         if not cam then return end
 
         local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+        local ignore = getIgnoreList()
         local checked = 0
 
         for _, target in pairs(game.Players:GetPlayers()) do
@@ -118,13 +132,13 @@ function TriggerBot.Start(player)
 
                 if humanoid and humanoid.Health > 0 then
                     checked = checked + 1
-                    local part = TriggerBot.FindTargetPart(player, target, cam, center)
+                    local part = TriggerBot.FindTargetPart(player, target, cam, center, ignore)
 
                     if part then
                         clickMouse()
                         TriggerBot.LastAttack = os.clock()
                         setStatus("Firing at " .. part.Name, Color3.fromRGB(60, 255, 120))
-                        break
+                        return
                     end
                 end
             end
@@ -136,6 +150,15 @@ function TriggerBot.Start(player)
             else
                 setStatus("Status: no visible body part near the crosshair", Color3.fromRGB(255, 160, 60))
             end
+        end
+    end
+
+    setStatus("Status: waiting", Color3.fromRGB(160, 160, 160))
+
+    task.spawn(function()
+        while TriggerBot.Enabled do
+            pcall(scan)
+            task.wait(math.max(TriggerBot.Settings.Delay, 30) / 1000)
         end
     end)
 end
@@ -194,7 +217,7 @@ function TriggerBot.BuildSettings(content)
     local info = Instance.new("TextLabel")
     info.Size = UDim2.new(1, 0, 0, 55)
     info.BackgroundTransparency = 1
-    info.Text = "Shoots automatically at any visible body part near the crosshair. Wall check, aim radius and left click are always on"
+    info.Text = "Shoots automatically at any visible body part near the crosshair. Wall check and left click are always on. Minimum interval is 30 ms to keep FPS stable"
     info.TextColor3 = Color3.fromRGB(120, 120, 120)
     info.Font = Enum.Font.GothamMedium
     info.TextSize = 10
