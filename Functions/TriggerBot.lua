@@ -2,6 +2,7 @@ local TriggerBot = {}
 
 TriggerBot.Settings = {
     Delay = 0,
+    AimPart = "Torso",
     Keybind = nil
 }
 
@@ -11,6 +12,35 @@ TriggerBot.LastAttack = 0
 TriggerBot.Status = nil
 
 local AIM_RADIUS = 150
+
+local PART_GROUPS = {
+    Head = {
+        ["Head"] = true
+    },
+    Torso = {
+        ["Torso"] = true,
+        ["UpperTorso"] = true,
+        ["LowerTorso"] = true,
+        ["Left Arm"] = true,
+        ["Right Arm"] = true,
+        ["LeftUpperArm"] = true,
+        ["RightUpperArm"] = true,
+        ["LeftLowerArm"] = true,
+        ["RightLowerArm"] = true,
+        ["LeftHand"] = true,
+        ["RightHand"] = true
+    },
+    Legs = {
+        ["Left Leg"] = true,
+        ["Right Leg"] = true,
+        ["LeftUpperLeg"] = true,
+        ["RightUpperLeg"] = true,
+        ["LeftLowerLeg"] = true,
+        ["RightLowerLeg"] = true,
+        ["LeftFoot"] = true,
+        ["RightFoot"] = true
+    }
+}
 
 function TriggerBot.BuildIgnoreList(player)
     local ignore = {}
@@ -54,13 +84,14 @@ function TriggerBot.FindTargetPart(player, target, camera, center, ignore)
 
     local bestPart = nil
     local bestDistance = math.huge
+    local group = PART_GROUPS[TriggerBot.Settings.AimPart] or PART_GROUPS.Torso
 
     if not ignore then
         ignore = TriggerBot.BuildIgnoreList(player)
     end
 
     for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") and not part:FindFirstAncestorWhichIsA("Accessory") and not part:FindFirstAncestorWhichIsA("Accoutrement") then
+        if group[part.Name] and part:IsA("BasePart") and not part:FindFirstAncestorWhichIsA("Accessory") and not part:FindFirstAncestorWhichIsA("Accoutrement") then
             local screenPos, onScreen = camera:WorldToScreenPoint(part.Position)
 
             if onScreen then
@@ -148,7 +179,7 @@ function TriggerBot.Start(player)
             if checked == 0 then
                 setStatus("Status: no players to target", Color3.fromRGB(255, 160, 60))
             else
-                setStatus("Status: no visible body part near the crosshair", Color3.fromRGB(255, 160, 60))
+                setStatus("Status: no visible " .. string.lower(TriggerBot.Settings.AimPart) .. " near the crosshair", Color3.fromRGB(255, 160, 60))
             end
         end
     end
@@ -214,10 +245,69 @@ function TriggerBot.BuildSettings(content)
         delayInput.Text = tostring(TriggerBot.Settings.Delay)
     end)
 
+    local partLabel = Instance.new("TextLabel")
+    partLabel.Size = UDim2.new(1, 0, 0, 20)
+    partLabel.BackgroundTransparency = 1
+    partLabel.Text = "Shoot only when this part is in sight"
+    partLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    partLabel.Font = Enum.Font.GothamBold
+    partLabel.TextSize = 11
+    partLabel.TextXAlignment = Enum.TextXAlignment.Left
+    partLabel.Parent = content
+
+    local partRow = Instance.new("Frame")
+    partRow.Size = UDim2.new(1, 0, 0, 30)
+    partRow.BackgroundTransparency = 1
+    partRow.Parent = content
+
+    local partButtons = {}
+
+    local function refreshParts()
+        for mode, button in pairs(partButtons) do
+            if TriggerBot.Settings.AimPart == mode then
+                button.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+                button.TextColor3 = Color3.new(1, 1, 1)
+            else
+                button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                button.TextColor3 = Color3.fromRGB(200, 200, 200)
+            end
+        end
+    end
+
+    local function createPartButton(mode, x, width)
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(width, -4, 1, 0)
+        button.Position = UDim2.new(x, 0, 0, 0)
+        button.Text = mode
+        button.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        button.BorderSizePixel = 0
+        button.TextColor3 = Color3.fromRGB(200, 200, 200)
+        button.Font = Enum.Font.GothamBlack
+        button.TextSize = 11
+        button.AutoButtonColor = false
+        button.Parent = partRow
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = button
+
+        button.MouseButton1Click:Connect(function()
+            TriggerBot.Settings.AimPart = mode
+            refreshParts()
+        end)
+
+        partButtons[mode] = button
+    end
+
+    createPartButton("Head", 0, 0.34)
+    createPartButton("Torso", 0.34, 0.34)
+    createPartButton("Legs", 0.68, 0.34)
+    refreshParts()
+
     local info = Instance.new("TextLabel")
     info.Size = UDim2.new(1, 0, 0, 55)
     info.BackgroundTransparency = 1
-    info.Text = "Shoots automatically at any visible body part near the crosshair. Wall check and left click are always on. Minimum interval is 30 ms to keep FPS stable"
+    info.Text = "Shoots automatically only at the selected part when it is visible near the crosshair. Wall check and left click are always on. Minimum interval is 30 ms to keep FPS stable"
     info.TextColor3 = Color3.fromRGB(120, 120, 120)
     info.Font = Enum.Font.GothamMedium
     info.TextSize = 10
