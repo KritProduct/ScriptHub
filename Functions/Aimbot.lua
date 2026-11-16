@@ -8,6 +8,7 @@ Aimbot.Settings = {
     DrawFOV = false,
     FOVColor = Color3.fromRGB(255, 255, 255),
     TargetPart = "Head",
+    Priority = "FOV",
     BotDetect = false,
     SilentAim = false,
     Keybind = nil
@@ -133,10 +134,11 @@ function Aimbot.GetClosestTarget(player)
     local cam = workspace.CurrentCamera
     if not cam then return nil, nil end
     
-    local closest = nil
-    local closestModel = nil
-    local closestDist = Aimbot.Settings.FOV
+    local bestPart = nil
+    local bestModel = nil
+    local bestScore = math.huge
     local centerScreen = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+    local priority = Aimbot.Settings.Priority
     
     local targets = Aimbot.GetAllTargets(player)
     
@@ -157,12 +159,25 @@ function Aimbot.GetClosestTarget(player)
                 if targetPart then
                     local sp, onScreen = cam:WorldToScreenPoint(targetPart.Position)
                     if onScreen then
-                        local dist = (Vector2.new(sp.X, sp.Y) - centerScreen).Magnitude
-                        if dist < closestDist then
+                        local screenDist = (Vector2.new(sp.X, sp.Y) - centerScreen).Magnitude
+                        
+                        if screenDist <= Aimbot.Settings.FOV then
                             if not Aimbot.Settings.WallCheck or Aimbot.IsVisible(player, targetModel) then
-                                closest = targetPart
-                                closestModel = targetModel
-                                closestDist = dist
+                                local score
+                                
+                                if priority == "Distance" then
+                                    score = (cam.CFrame.Position - targetPart.Position).Magnitude
+                                elseif priority == "Health" then
+                                    score = humanoid.Health
+                                else
+                                    score = screenDist
+                                end
+                                
+                                if score < bestScore then
+                                    bestScore = score
+                                    bestPart = targetPart
+                                    bestModel = targetModel
+                                end
                             end
                         end
                     end
@@ -171,7 +186,7 @@ function Aimbot.GetClosestTarget(player)
         end
     end
     
-    return closest, closestModel
+    return bestPart, bestModel
 end
 
 function Aimbot.UpdateFOVCircle()
@@ -263,7 +278,7 @@ function Aimbot.Start(player)
             end
             
             if Aimbot.Settings.SilentAim then
-                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
                     if mousemoverel then
                         local mousePos = UserInputService:GetMouseLocation()
                         local moveX = (sp.X - mousePos.X) * Aimbot.Settings.Speed / 20
@@ -285,7 +300,7 @@ function Aimbot.Start(player)
             Aimbot.TargetLocked = true
             
             if Aimbot.Settings.SilentAim then
-                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+                if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
                     if mousemoverel then
                         local sp, onScreen = cam:WorldToScreenPoint(closest.Position)
                         if onScreen then
@@ -489,9 +504,72 @@ function Aimbot.BuildSettings(content)
         Aimbot.RefreshFOV()
     end)
     
-    createToggle("Silent Aim (ÏÊÌ)", Aimbot.Settings.SilentAim, function(v)
+    createToggle("Silent Aim", Aimbot.Settings.SilentAim, function(v)
         Aimbot.Settings.SilentAim = v
     end)
+    
+    local priorityLabel = Instance.new("TextLabel")
+    priorityLabel.Size = UDim2.new(1, 0, 0, 20)
+    priorityLabel.BackgroundTransparency = 1
+    priorityLabel.Text = "Target Priority: " .. Aimbot.Settings.Priority
+    priorityLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    priorityLabel.Font = Enum.Font.GothamBold
+    priorityLabel.TextSize = 11
+    priorityLabel.TextXAlignment = Enum.TextXAlignment.Left
+    priorityLabel.Parent = content
+    
+    local priorityContainer = Instance.new("Frame")
+    priorityContainer.Size = UDim2.new(1, 0, 0, 30)
+    priorityContainer.BackgroundTransparency = 1
+    priorityContainer.Parent = content
+    
+    local priorities = {
+        { Name = "FOV", Title = "FOV" },
+        { Name = "Distance", Title = "Distance" },
+        { Name = "Health", Title = "Health" }
+    }
+    
+    local priorityButtons = {}
+    
+    local function updatePriority()
+        priorityLabel.Text = "Target Priority: " .. Aimbot.Settings.Priority
+        for name, btn in pairs(priorityButtons) do
+            if name == Aimbot.Settings.Priority then
+                btn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
+                btn.TextColor3 = Color3.new(1, 1, 1)
+            else
+                btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+                btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+            end
+        end
+    end
+    
+    for index, data in ipairs(priorities) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, 90, 0, 30)
+        btn.Position = UDim2.new(0, (index - 1) * 95, 0, 0)
+        btn.Text = data.Title
+        btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+        btn.BorderSizePixel = 0
+        btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        btn.Font = Enum.Font.GothamBlack
+        btn.TextSize = 11
+        btn.AutoButtonColor = false
+        btn.Parent = priorityContainer
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            Aimbot.Settings.Priority = data.Name
+            updatePriority()
+        end)
+        
+        priorityButtons[data.Name] = btn
+    end
+    
+    updatePriority()
     
     local partLabel = Instance.new("TextLabel")
     partLabel.Size = UDim2.new(1, 0, 0, 20)

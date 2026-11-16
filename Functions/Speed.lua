@@ -1,226 +1,105 @@
 local Speed = {}
 
 Speed.Settings = {
-    Strength = 50,
-    AntiCheatBypass = false,
+    Speed = 16,
     Keybind = nil
 }
 
 Speed.Enabled = false
-Speed.Instance = nil
-Speed.OriginalHumanoid = nil
-Speed.CameraConnection = nil
+Speed.OriginalWalkSpeed = nil
+Speed.CharacterConnection = nil
+
+local function getHumanoid(player)
+    local character = player.Character
+    if not character then return nil end
+    return character:FindFirstChildOfClass("Humanoid")
+end
+
+local function applySpeed(player)
+    local humanoid = getHumanoid(player)
+    if humanoid then
+        humanoid.WalkSpeed = Speed.Settings.Speed
+    end
+end
 
 function Speed.Start(player)
-    local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
-    
-    local character = player.Character
-    if not character then return end
-    
-    local root = character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character:FindFirstChild("Humanoid")
-    if not root or not humanoid then return end
-    
+    local currentHumanoid = getHumanoid(player)
+    if not currentHumanoid then return end
+
     Speed.Enabled = true
-    
-    if Speed.Settings.AntiCheatBypass then
-        Speed.OriginalHumanoid = humanoid
-        humanoid.Parent = nil
-        
-        task.spawn(function()
-            while Speed.Enabled do
-                pcall(function()
-                    workspace.CurrentCamera.CameraSubject = root
-                    workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-                end)
-                task.wait(0.05)
-            end
-        end)
-    end
-    
-    local connection = RunService.Heartbeat:Connect(function()
+    Speed.OriginalWalkSpeed = currentHumanoid.WalkSpeed
+
+    applySpeed(player)
+
+    Speed.CharacterConnection = player.CharacterAdded:Connect(function()
         if not Speed.Enabled then return end
-        
-        local dir = Vector3.new()
-        local cam = workspace.CurrentCamera
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
-        dir = Vector3.new(dir.X, 0, dir.Z)
-        
-        if dir.Magnitude > 0 then
-            dir = dir.Unit
-            local moveDistance = Speed.Settings.Strength * 0.05
-            root.CFrame = root.CFrame + (dir * moveDistance)
-        end
+        task.wait(0.2)
+        applySpeed(player)
     end)
-    
-    Speed.Instance = {
-        Connection = connection
-    }
 end
 
 function Speed.Stop(player)
     Speed.Enabled = false
-    
-    if Speed.Instance then
-        Speed.Instance.Connection:Disconnect()
-        Speed.Instance = nil
+
+    if Speed.CharacterConnection then
+        Speed.CharacterConnection:Disconnect()
+        Speed.CharacterConnection = nil
     end
-    
-    if Speed.Settings.AntiCheatBypass and Speed.OriginalHumanoid then
-        Speed.OriginalHumanoid.Parent = player.Character
-        Speed.OriginalHumanoid = nil
-        pcall(function()
-            workspace.CurrentCamera.CameraSubject = player.Character:FindFirstChild("Humanoid")
-            workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
-        end)
+
+    local humanoid = getHumanoid(player)
+    if humanoid then
+        humanoid.WalkSpeed = Speed.OriginalWalkSpeed or 16
     end
+
+    Speed.OriginalWalkSpeed = nil
 end
 
-function Speed.BuildSettings(content)
+function Speed.BuildSettings(content, player)
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
-    label.Text = "Speed: " .. math.floor(Speed.Settings.Strength)
+    label.Text = "WalkSpeed"
     label.TextColor3 = Color3.fromRGB(180, 180, 180)
     label.Font = Enum.Font.GothamBold
     label.TextSize = 11
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = content
-    
-    local slider = Instance.new("Frame")
-    slider.Size = UDim2.new(1, 0, 0, 35)
-    slider.BackgroundTransparency = 1
-    slider.Parent = content
-    
-    local sliderLabel = Instance.new("TextLabel")
-    sliderLabel.Size = UDim2.new(0, 50, 0, 20)
-    sliderLabel.Position = UDim2.new(1, -50, 0, 0)
-    sliderLabel.BackgroundTransparency = 1
-    sliderLabel.Text = tostring(math.floor(Speed.Settings.Strength))
-    sliderLabel.TextColor3 = Color3.fromRGB(80, 140, 255)
-    sliderLabel.Font = Enum.Font.GothamBlack
-    sliderLabel.TextSize = 11
-    sliderLabel.Parent = slider
-    
-    local track = Instance.new("Frame")
-    track.Size = UDim2.new(1, -60, 0, 6)
-    track.Position = UDim2.new(0, 0, 0, 20)
-    track.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    track.BorderSizePixel = 0
-    track.Parent = slider
-    
-    local trackCorner = Instance.new("UICorner")
-    trackCorner.CornerRadius = UDim.new(0, 3)
-    trackCorner.Parent = track
-    
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new(0, 0, 0, 6)
-    fill.Position = UDim2.new(0, 0, 0, 20)
-    fill.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-    fill.BorderSizePixel = 0
-    fill.Parent = slider
-    
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 3)
-    fillCorner.Parent = fill
-    
-    local function updateVisual(value)
-        local percent = (value - 5) / (1000 - 5)
-        fill.Size = UDim2.new(0, percent * track.AbsoluteSize.X, 0, 6)
-        sliderLabel.Text = tostring(math.floor(value))
-        label.Text = "Speed: " .. math.floor(value)
-    end
-    
-    updateVisual(Speed.Settings.Strength)
-    
-    track.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local RunService = game:GetService("RunService")
-            local UserInputService = game:GetService("UserInputService")
-            local connection
-            connection = RunService.RenderStepped:Connect(function()
-                local mouseX = UserInputService:GetMouseLocation().X
-                local startX = track.AbsolutePosition.X
-                local endX = track.AbsolutePosition.X + track.AbsoluteSize.X
-                local percent = math.clamp((mouseX - startX) / (endX - startX), 0, 1)
-                local value = 5 + percent * (1000 - 5)
-                Speed.Settings.Strength = value
-                updateVisual(value)
-            end)
-            local endConnection
-            endConnection = UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    connection:Disconnect()
-                    endConnection:Disconnect()
-                end
-            end)
+
+    local input = Instance.new("TextBox")
+    input.Size = UDim2.new(1, 0, 0, 30)
+    input.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    input.BorderSizePixel = 0
+    input.Text = tostring(Speed.Settings.Speed)
+    input.PlaceholderText = "1 - 500"
+    input.TextColor3 = Color3.new(1, 1, 1)
+    input.Font = Enum.Font.GothamBold
+    input.TextSize = 12
+    input.ClearTextOnFocus = false
+    input.Parent = content
+
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 6)
+    inputCorner.Parent = input
+
+    local hint = Instance.new("TextLabel")
+    hint.Size = UDim2.new(1, 0, 0, 16)
+    hint.BackgroundTransparency = 1
+    hint.Text = "16 = standard Roblox speed"
+    hint.TextColor3 = Color3.fromRGB(120, 120, 120)
+    hint.Font = Enum.Font.GothamMedium
+    hint.TextSize = 10
+    hint.TextXAlignment = Enum.TextXAlignment.Left
+    hint.Parent = content
+
+    input.FocusLost:Connect(function()
+        local value = tonumber(input.Text)
+        if value then
+            Speed.Settings.Speed = math.clamp(value, 1, 500)
         end
-    end)
-    
-    local toggleContainer = Instance.new("Frame")
-    toggleContainer.Size = UDim2.new(1, 0, 0, 30)
-    toggleContainer.BackgroundTransparency = 1
-    toggleContainer.Parent = content
-    
-    local toggleLabel = Instance.new("TextLabel")
-    toggleLabel.Size = UDim2.new(1, -50, 1, 0)
-    toggleLabel.BackgroundTransparency = 1
-    toggleLabel.Text = "AntiCheat Bypass"
-    toggleLabel.TextColor3 = Color3.new(1, 1, 1)
-    toggleLabel.Font = Enum.Font.GothamBold
-    toggleLabel.TextSize = 11
-    toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    toggleLabel.Parent = toggleContainer
-    
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(0, 40, 0, 22)
-    toggle.Position = UDim2.new(1, -40, 0.5, -11)
-    toggle.Text = ""
-    toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    toggle.BorderSizePixel = 0
-    toggle.AutoButtonColor = false
-    toggle.Parent = toggleContainer
-    
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 11)
-    toggleCorner.Parent = toggle
-    
-    local dot = Instance.new("Frame")
-    dot.Size = UDim2.new(0, 16, 0, 16)
-    dot.Position = UDim2.new(0, 3, 0.5, -8)
-    dot.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-    dot.BorderSizePixel = 0
-    dot.Parent = toggle
-    
-    local dotCorner = Instance.new("UICorner")
-    dotCorner.CornerRadius = UDim.new(0, 8)
-    dotCorner.Parent = dot
-    
-    local enabled = Speed.Settings.AntiCheatBypass
-    
-    local function updateToggle()
-        if enabled then
-            toggle.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-            dot.Position = UDim2.new(1, -19, 0.5, -8)
-            dot.BackgroundColor3 = Color3.new(1, 1, 1)
-        else
-            toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-            dot.Position = UDim2.new(0, 3, 0.5, -8)
-            dot.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+        input.Text = tostring(Speed.Settings.Speed)
+        if Speed.Enabled then
+            applySpeed(player or game.Players.LocalPlayer)
         end
-    end
-    
-    updateToggle()
-    
-    toggle.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        Speed.Settings.AntiCheatBypass = enabled
-        updateToggle()
     end)
 end
 

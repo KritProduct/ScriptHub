@@ -4,11 +4,13 @@ TriggerBot.Settings = {
     FriendCheck = false,
     WallCheck = false,
     Button = "Left",
+    Delay = 0,
     Keybind = nil
 }
 
 TriggerBot.Enabled = false
 TriggerBot.Connection = nil
+TriggerBot.LastAttack = 0
 
 function TriggerBot.IsVisible(player, target)
     if not TriggerBot.Settings.WallCheck then return true end
@@ -37,9 +39,11 @@ function TriggerBot.Start(player)
     local UserInputService = game:GetService("UserInputService")
     
     TriggerBot.Enabled = true
+    TriggerBot.LastAttack = 0
     
     TriggerBot.Connection = RunService.RenderStepped:Connect(function()
         if not TriggerBot.Enabled then return end
+        if os.clock() - TriggerBot.LastAttack < TriggerBot.Settings.Delay / 1000 then return end
         
         local cam = workspace.CurrentCamera
         if not cam then return end
@@ -82,6 +86,8 @@ function TriggerBot.Start(player)
                                             mouse2release()
                                         end
                                     end)
+                                    TriggerBot.LastAttack = os.clock()
+                                    break
                                 end
                             end
                         end
@@ -102,6 +108,40 @@ function TriggerBot.Stop()
 end
 
 function TriggerBot.BuildSettings(content)
+    local delayLabel = Instance.new("TextLabel")
+    delayLabel.Size = UDim2.new(1, 0, 0, 20)
+    delayLabel.BackgroundTransparency = 1
+    delayLabel.Text = "Delay before each shot (ms)"
+    delayLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    delayLabel.Font = Enum.Font.GothamBold
+    delayLabel.TextSize = 11
+    delayLabel.TextXAlignment = Enum.TextXAlignment.Left
+    delayLabel.Parent = content
+    
+    local delayInput = Instance.new("TextBox")
+    delayInput.Size = UDim2.new(1, 0, 0, 30)
+    delayInput.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    delayInput.BorderSizePixel = 0
+    delayInput.Text = tostring(TriggerBot.Settings.Delay)
+    delayInput.PlaceholderText = "0 - 500"
+    delayInput.TextColor3 = Color3.new(1, 1, 1)
+    delayInput.Font = Enum.Font.GothamBold
+    delayInput.TextSize = 12
+    delayInput.ClearTextOnFocus = false
+    delayInput.Parent = content
+    
+    local delayCorner = Instance.new("UICorner")
+    delayCorner.CornerRadius = UDim.new(0, 6)
+    delayCorner.Parent = delayInput
+    
+    delayInput.FocusLost:Connect(function()
+        local value = tonumber(delayInput.Text)
+        if value then
+            TriggerBot.Settings.Delay = math.clamp(value, 0, 500)
+        end
+        delayInput.Text = tostring(TriggerBot.Settings.Delay)
+    end)
+    
     local function createToggle(text, default, callback)
         local container = Instance.new("Frame")
         container.Size = UDim2.new(1, 0, 0, 30)
