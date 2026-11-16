@@ -12,6 +12,7 @@ TriggerBot.Settings = {
 TriggerBot.Enabled = false
 TriggerBot.Connection = nil
 TriggerBot.LastAttack = 0
+TriggerBot.Status = nil
 
 function TriggerBot.BuildIgnoreList(player)
     local ignore = {}
@@ -60,8 +61,8 @@ function TriggerBot.FindTargetPart(player, target, camera, center)
     local bestDistance = math.huge
     local ignore = TriggerBot.BuildIgnoreList(player)
 
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") and not part:FindFirstAncestorWhichIsA("Accessory") and not part:FindFirstAncestorWhichIsA("Accoutrement") then
             local screenPos, onScreen = camera:WorldToScreenPoint(part.Position)
 
             if onScreen then
@@ -86,33 +87,57 @@ function TriggerBot.Start(player)
     TriggerBot.Enabled = true
     TriggerBot.LastAttack = 0
 
-    local function fire(button)
-        local ok = pcall(function()
-            if button == "Left" then
-                mouse1press()
-                task.wait(0.001)
-                mouse1release()
-            else
-                mouse2press()
-                task.wait(0.001)
-                mouse2release()
+    if TriggerBot.Status and TriggerBot.Status.Parent then
+        TriggerBot.Status.Text = "Status: waiting"
+        TriggerBot.Status.TextColor3 = Color3.fromRGB(160, 160, 160)
+    end
+
+    local function setStatus(text, color)
+        if TriggerBot.Status and TriggerBot.Status.Parent then
+            TriggerBot.Status.Text = text
+            TriggerBot.Status.TextColor3 = color or Color3.fromRGB(160, 160, 160)
+        end
+    end
+
+    local function clickMouse(button)
+        local isLeft = button == "Left"
+        local pressed = false
+
+        if isLeft and type(mouse1click) == "function" then
+            pressed = pcall(mouse1click)
+        elseif not isLeft and type(mouse2click) == "function" then
+            pressed = pcall(mouse2click)
+        end
+
+        if not pressed then
+            local pressFunction = isLeft and mouse1press or mouse2press
+            local releaseFunction = isLeft and mouse1release or mouse2release
+
+            if type(pressFunction) == "function" and type(releaseFunction) == "function" then
+                pressed = pcall(function()
+                    pressFunction()
+                    task.wait(0.02)
+                    releaseFunction()
+                end)
             end
-        end)
+        end
 
-        if ok then return end
+        if pressed then return true end
 
-        local VirtualInputManager = game:GetService("VirtualInputManager")
-        local camera = workspace.CurrentCamera
-        local position = camera and camera.ViewportSize or Vector2.new(800, 600)
-        local x = math.floor(position.X / 2)
-        local y = math.floor(position.Y / 2)
-        local code = button == "Left" and 0 or 1
+        local sent = pcall(function()
+            local VirtualInputManager = game:GetService("VirtualInputManager")
+            local camera = workspace.CurrentCamera
+            local position = camera and camera.ViewportSize or Vector2.new(800, 600)
+            local x = math.floor(position.X / 2)
+            local y = math.floor(position.Y / 2)
+            local code = isLeft and 0 or 1
 
-        pcall(function()
             VirtualInputManager:SendMouseButtonEvent(x, y, code, true, game, 0)
-            task.wait(0.001)
+            task.wait(0.02)
             VirtualInputManager:SendMouseButtonEvent(x, y, code, false, game, 0)
         end)
+
+        return sent
     end
     
     TriggerBot.Connection = RunService.RenderStepped:Connect(function()
@@ -123,6 +148,7 @@ function TriggerBot.Start(player)
         if not cam then return end
 
         local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+        local checked = 0
         
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
@@ -142,15 +168,25 @@ function TriggerBot.Start(player)
                     end
                     
                     if not isFriend then
+                        checked = checked + 1
                         local part = TriggerBot.FindTargetPart(player, target, cam, center)
 
                         if part then
-                            fire(TriggerBot.Settings.Button)
+                            clickMouse(TriggerBot.Settings.Button)
                             TriggerBot.LastAttack = os.clock()
+                            setStatus("Firing at " .. part.Name, Color3.fromRGB(60, 255, 120))
                             break
                         end
                     end
                 end
+            end
+        end
+
+        if os.clock() - TriggerBot.LastAttack > 0.2 then
+            if checked == 0 then
+                setStatus("No players to target", Color3.fromRGB(255, 160, 60))
+            else
+                setStatus("No visible body part inside " .. tostring(math.floor(TriggerBot.Settings.Fov)) .. " px", Color3.fromRGB(255, 160, 60))
             end
         end
     end)
@@ -162,6 +198,11 @@ function TriggerBot.Stop()
     if TriggerBot.Connection then
         TriggerBot.Connection:Disconnect()
         TriggerBot.Connection = nil
+    end
+
+    if TriggerBot.Status and TriggerBot.Status.Parent then
+        TriggerBot.Status.Text = "Status: off"
+        TriggerBot.Status.TextColor3 = Color3.fromRGB(160, 160, 160)
     end
 end
 
@@ -372,6 +413,19 @@ function TriggerBot.BuildSettings(content)
         updateButtons()
     end)
     
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, 0, 0, 40)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "Status: idle"
+    statusLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    statusLabel.Font = Enum.Font.GothamBold
+    statusLabel.TextSize = 11
+    statusLabel.TextWrapped = true
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statusLabel.Parent = content
+
+    TriggerBot.Status = statusLabel
+
     updateButtons()
 end
 
