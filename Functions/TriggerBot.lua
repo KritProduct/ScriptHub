@@ -100,44 +100,19 @@ function TriggerBot.Start(player)
     end
 
     local function clickMouse(button)
-        local isLeft = button == "Left"
-        local pressed = false
-
-        if isLeft and type(mouse1click) == "function" then
-            pressed = pcall(mouse1click)
-        elseif not isLeft and type(mouse2click) == "function" then
-            pressed = pcall(mouse2click)
+        if button == "Left" then
+            pcall(function()
+                mouse1press()
+                task.wait(0.01)
+                mouse1release()
+            end)
+        else
+            pcall(function()
+                mouse2press()
+                task.wait(0.01)
+                mouse2release()
+            end)
         end
-
-        if not pressed then
-            local pressFunction = isLeft and mouse1press or mouse2press
-            local releaseFunction = isLeft and mouse1release or mouse2release
-
-            if type(pressFunction) == "function" and type(releaseFunction) == "function" then
-                pressed = pcall(function()
-                    pressFunction()
-                    task.wait(0.02)
-                    releaseFunction()
-                end)
-            end
-        end
-
-        if pressed then return true end
-
-        local sent = pcall(function()
-            local VirtualInputManager = game:GetService("VirtualInputManager")
-            local camera = workspace.CurrentCamera
-            local position = camera and camera.ViewportSize or Vector2.new(800, 600)
-            local x = math.floor(position.X / 2)
-            local y = math.floor(position.Y / 2)
-            local code = isLeft and 0 or 1
-
-            VirtualInputManager:SendMouseButtonEvent(x, y, code, true, game, 0)
-            task.wait(0.02)
-            VirtualInputManager:SendMouseButtonEvent(x, y, code, false, game, 0)
-        end)
-
-        return sent
     end
     
     TriggerBot.Connection = RunService.RenderStepped:Connect(function()
