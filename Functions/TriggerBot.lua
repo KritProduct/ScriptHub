@@ -5,6 +5,7 @@ TriggerBot.Settings = {
     WallCheck = false,
     Button = "Left",
     Delay = 0,
+    Fov = 150,
     Keybind = nil
 }
 
@@ -12,34 +13,88 @@ TriggerBot.Enabled = false
 TriggerBot.Connection = nil
 TriggerBot.LastAttack = 0
 
-function TriggerBot.IsVisible(player, target)
+function TriggerBot.IsPartVisible(player, target, camera, part)
     if not TriggerBot.Settings.WallCheck then return true end
-    
+
     local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    
-    local targetChar = target.Character
-    local targetRoot = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
-    if not targetRoot then return false end
-    
+    if not char then return false end
+
     local raycastParams = RaycastParams.new()
     raycastParams.FilterDescendantsInstances = {char}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    
-    local ray = workspace:Raycast(root.Position, (targetRoot.Position - root.Position).Unit * 1000, raycastParams)
-    if ray and ray.Instance then
-        return ray.Instance:IsDescendantOf(targetChar)
+
+    local origin = camera.CFrame.Position
+    local result = workspace:Raycast(origin, part.Position - origin, raycastParams)
+
+    if not result or not result.Instance then
+        return true
     end
-    return true
+
+    return result.Instance == part or result.Instance:IsDescendantOf(target.Character)
+end
+
+function TriggerBot.FindTargetPart(player, target, camera, center)
+    local character = target.Character
+    if not character then return nil end
+
+    local radius = TriggerBot.Settings.Fov
+    local bestPart = nil
+    local bestDistance = math.huge
+
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            local screenPos, onScreen = camera:WorldToScreenPoint(part.Position)
+
+            if onScreen then
+                local distance = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+
+                if distance <= radius and distance < bestDistance then
+                    if TriggerBot.IsPartVisible(player, target, camera, part) then
+                        bestPart = part
+                        bestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+
+    return bestPart
 end
 
 function TriggerBot.Start(player)
     local RunService = game:GetService("RunService")
-    local UserInputService = game:GetService("UserInputService")
     
     TriggerBot.Enabled = true
     TriggerBot.LastAttack = 0
+
+    local function fire(button)
+        local ok = pcall(function()
+            if button == "Left" then
+                mouse1press()
+                task.wait(0.001)
+                mouse1release()
+            else
+                mouse2press()
+                task.wait(0.001)
+                mouse2release()
+            end
+        end)
+
+        if ok then return end
+
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        local camera = workspace.CurrentCamera
+        local position = camera and camera.ViewportSize or Vector2.new(800, 600)
+        local x = math.floor(position.X / 2)
+        local y = math.floor(position.Y / 2)
+        local code = button == "Left" and 0 or 1
+
+        pcall(function()
+            VirtualInputManager:SendMouseButtonEvent(x, y, code, true, game, 0)
+            task.wait(0.001)
+            VirtualInputManager:SendMouseButtonEvent(x, y, code, false, game, 0)
+        end)
+    end
     
     TriggerBot.Connection = RunService.RenderStepped:Connect(function()
         if not TriggerBot.Enabled then return end
@@ -47,6 +102,8 @@ function TriggerBot.Start(player)
         
         local cam = workspace.CurrentCamera
         if not cam then return end
+
+        local center = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
         
         for _, target in pairs(game.Players:GetPlayers()) do
             if target ~= player and target.Character then
@@ -65,31 +122,13 @@ function TriggerBot.Start(player)
                         end
                     end
                     
-                    if not isFriend and TriggerBot.IsVisible(player, target) then
-                        local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-                        if targetRoot then
-                            local screenPos, onScreen = cam:WorldToScreenPoint(targetRoot.Position)
-                            
-                            if onScreen then
-                                local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
-                                local dist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
-                                
-                                if dist < 80 then
-                                    pcall(function()
-                                        if TriggerBot.Settings.Button == "Left" then
-                                            mouse1press()
-                                            task.wait(0.001)
-                                            mouse1release()
-                                        else
-                                            mouse2press()
-                                            task.wait(0.001)
-                                            mouse2release()
-                                        end
-                                    end)
-                                    TriggerBot.LastAttack = os.clock()
-                                    break
-                                end
-                            end
+                    if not isFriend then
+                        local part = TriggerBot.FindTargetPart(player, target, cam, center)
+
+                        if part then
+                            fire(TriggerBot.Settings.Button)
+                            TriggerBot.LastAttack = os.clock()
+                            break
                         end
                     end
                 end
@@ -140,6 +179,40 @@ function TriggerBot.BuildSettings(content)
             TriggerBot.Settings.Delay = math.clamp(value, 0, 500)
         end
         delayInput.Text = tostring(TriggerBot.Settings.Delay)
+    end)
+
+    local fovLabel = Instance.new("TextLabel")
+    fovLabel.Size = UDim2.new(1, 0, 0, 20)
+    fovLabel.BackgroundTransparency = 1
+    fovLabel.Text = "Aim radius around the crosshair (pixels)"
+    fovLabel.TextColor3 = Color3.fromRGB(160, 160, 160)
+    fovLabel.Font = Enum.Font.GothamBold
+    fovLabel.TextSize = 11
+    fovLabel.TextXAlignment = Enum.TextXAlignment.Left
+    fovLabel.Parent = content
+
+    local fovInput = Instance.new("TextBox")
+    fovInput.Size = UDim2.new(1, 0, 0, 30)
+    fovInput.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    fovInput.BorderSizePixel = 0
+    fovInput.Text = tostring(TriggerBot.Settings.Fov)
+    fovInput.PlaceholderText = "0 - 500"
+    fovInput.TextColor3 = Color3.new(1, 1, 1)
+    fovInput.Font = Enum.Font.GothamBold
+    fovInput.TextSize = 12
+    fovInput.ClearTextOnFocus = false
+    fovInput.Parent = content
+
+    local fovCorner = Instance.new("UICorner")
+    fovCorner.CornerRadius = UDim.new(0, 6)
+    fovCorner.Parent = fovInput
+
+    fovInput.FocusLost:Connect(function()
+        local value = tonumber(fovInput.Text)
+        if value then
+            TriggerBot.Settings.Fov = math.clamp(value, 0, 500)
+        end
+        fovInput.Text = tostring(TriggerBot.Settings.Fov)
     end)
     
     local function createToggle(text, default, callback)

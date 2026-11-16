@@ -34,14 +34,26 @@ local function applyCFrame(player, deltaTime)
     local root = humanoid.RootPart
     if not root then return end
 
-    if humanoid.WalkSpeed ~= 0 then
-        humanoid.WalkSpeed = 0
+    local baseSpeed = Speed.OriginalWalkSpeed
+
+    if not baseSpeed or baseSpeed < 8 then
+        baseSpeed = 16
     end
 
-    local direction = humanoid.MoveDirection
-    if direction.Magnitude > 0 then
-        root.CFrame = root.CFrame + direction * Speed.Settings.Speed * deltaTime
+    if humanoid.WalkSpeed ~= baseSpeed then
+        humanoid.WalkSpeed = baseSpeed
     end
+
+    local extra = Speed.Settings.Speed - baseSpeed
+    if extra <= 0 then return end
+
+    local direction = humanoid.MoveDirection
+    if direction.Magnitude < 0.01 then return end
+
+    local flat = Vector3.new(direction.X, 0, direction.Z)
+    if flat.Magnitude < 0.01 then return end
+
+    root.CFrame = root.CFrame + flat.Unit * extra * deltaTime
 end
 
 function Speed.Start(player)
